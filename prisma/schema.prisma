@@ -1,0 +1,98 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model BcvRate {
+  id        String   @id @default(uuid())
+  rate      Float
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+}
+
+model SchoolConfig {
+  id          String @id @default("default")
+  name        String @default("Colegio Ramón Pierluissi")
+  rif         String @default("J-12345678-9")
+  phone       String @default("+58 414-0000000")
+  email       String @default("admin@colegioramonpierluissi.com")
+  address     String @default("Venezuela")
+  bankDetails String @default("Pago Móvil: Banesco (0134) - CI: 12345678 - Tel: 04140000000\nZelle: pagos@colegioramonpierluissi.com")
+}
+
+model Representative {
+  id        String    @id @default(uuid())
+  name      String
+  cedula    String    @unique
+  phone     String
+  email     String?
+  address   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  students  Student[]
+}
+
+model Grade {
+  id            String    @id @default(uuid())
+  name          String
+  section       String
+  monthlyFeeUsd Float
+  students      Student[]
+}
+
+model Student {
+  id                 String         @id @default(uuid())
+  firstName          String
+  lastName           String
+  cedula             String         @unique
+  scholarshipPercent Float          @default(0)
+  status             String         @default("ACTIVE")
+  representativeId   String
+  representative     Representative @relation(fields: [representativeId], references: [id], onDelete: Cascade)
+  gradeId            String
+  grade              Grade          @relation(fields: [gradeId], references: [id])
+  fees               StudentFee[]
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+}
+
+model FeeConcept {
+  id               String   @id @default(uuid())
+  name             String
+  defaultAmountUsd Float
+  dueDate          DateTime
+  createdAt        DateTime @default(now())
+}
+
+model StudentFee {
+  id          String    @id @default(uuid())
+  studentId   String
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  conceptName String
+  amountUsd   Float
+  paidUsd     Float     @default(0)
+  dueDate     DateTime
+  status      String    @default("PENDING")
+  payments    Payment[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Payment {
+  id            String     @id @default(uuid())
+  studentFeeId  String
+  studentFee    StudentFee @relation(fields: [studentFeeId], references: [id], onDelete: Cascade)
+  paymentDate   DateTime   @default(now())
+  method        String
+  reference     String?
+  amountUsd     Float
+  amountVes     Float
+  bcvRate       Float
+  notes         String?
+  receiptNumber String     @unique
+  createdAt     DateTime   @default(now())
+}
