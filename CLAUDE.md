@@ -1,6 +1,6 @@
 # Memoria del Proyecto - Colegio Ramón Pierluissi Ramírez
 
-Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación Obligatoria & AdminAuthGuard (SuperAdmin, Admin, Cobranza) y Exportador para Profit Plus 2K12.
+Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación Obligatoria & AdminAuthGuard (SuperAdmin, Admin, Cobranza), Dockerfile Optimizado y Exportador para Profit Plus 2K12.
 
 ## 📌 Reglas de Flujo de Trabajo (Obligatorias)
 
@@ -15,7 +15,7 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
 
 - **Framework**: Next.js 16 (App Router, TypeScript, Tailwind CSS)
 - **Base de Datos**: PostgreSQL (Coolify VPS `colegio-db`) & SQLite (Desarrollo local `dev.db`)
-- **VPS / Hosting**: Coolify en IP `13.140.181.29`
+- **VPS / Hosting**: Coolify en IP `13.140.181.29` (Construcción vía `Dockerfile` multi-stage Node 20-alpine)
 - **Dominio Público**: [http://colegio.13.140.181.29.sslip.io](http://colegio.13.140.181.29.sslip.io)
 - **Repositorio GitHub**: `https://github.com/guaricool/Colegio.git` (rama `main`)
 
@@ -23,6 +23,7 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
 
 ## 🚀 Módulos Implementados
 
+- **Dockerfile Multi-Stage Optimizado**: Solución al fallo `ECONNRESET` de Nixpacks en Coolify. Compilación ligera y ultra rápida usando `node:20-alpine`.
 - **Bloqueo Total Administrativo & AdminAuthGuard (`AdminAuthGuard.tsx`)**: Protección global de las 6 páginas administrativas (`/dashboard`, `/cobros`, `/estudiantes`, `/whatsapp`, `/reportes`, `/configuracion`). Si no hay sesión válida iniciada en `/admin/login`, se bloquea el 100% de la vista y se redirige automáticamente al login.
 - **Autenticación Administrativa & Control de Roles (RBAC)**:
   - **SuperAdmin**: `cpierluissis@gmail.com` con acceso total al 100% del sistema sin restricciones.
