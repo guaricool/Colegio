@@ -85,7 +85,7 @@ export default function AdminRegisterPage() {
               <input
                 type="text"
                 required
-                placeholder="Carlos"
+                placeholder="Ej: Nombre"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"
@@ -96,7 +96,7 @@ export default function AdminRegisterPage() {
               <input
                 type="text"
                 required
-                placeholder="Pierluissi"
+                placeholder="Ej: Apellido"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"
@@ -109,7 +109,7 @@ export default function AdminRegisterPage() {
             <input
               type="email"
               required
-              placeholder="cpierluissis@gmail.com"
+              placeholder="correo@ejemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"
@@ -121,7 +121,7 @@ export default function AdminRegisterPage() {
             <input
               type="text"
               required
-              placeholder="cpierluissis"
+              placeholder="usuario_ejemplo"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"

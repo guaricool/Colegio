@@ -219,7 +219,7 @@ export default function ConfiguracionPage() {
           </div>
           {currentUser?.role === 'SUPER_ADMIN' && (
             <span className="bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-extrabold px-3 py-1.5 rounded-full">
-              SuperAdmin: cpierluissis@gmail.com
+              SuperAdmin: {currentUser?.email || 'Activo'}
             </span>
           )}
         </div>
@@ -238,7 +238,7 @@ export default function ConfiguracionPage() {
               <input
                 type="text"
                 required
-                placeholder="Ej: Katherine"
+                placeholder="Ej: Nombre"
                 value={newUserFirstName}
                 onChange={(e) => setNewUserFirstName(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-semibold"
@@ -250,7 +250,7 @@ export default function ConfiguracionPage() {
               <input
                 type="text"
                 required
-                placeholder="Ej: Lizardi"
+                placeholder="Ej: Apellido"
                 value={newUserLastName}
                 onChange={(e) => setNewUserLastName(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-semibold"
@@ -276,7 +276,7 @@ export default function ConfiguracionPage() {
               <input
                 type="email"
                 required
-                placeholder="cobranza@colegio.com"
+                placeholder="ejemplo@colegio.com"
                 value={newUserEmail}
                 onChange={(e) => setNewUserEmail(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-semibold"
@@ -288,7 +288,7 @@ export default function ConfiguracionPage() {
               <input
                 type="text"
                 required
-                placeholder="caja1"
+                placeholder="usuario_caja"
                 value={newUserUsername}
                 onChange={(e) => setNewUserUsername(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-semibold"

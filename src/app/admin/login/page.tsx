@@ -77,7 +77,7 @@ export default function AdminLoginPage() {
               <input
                 type="text"
                 required
-                placeholder="cpierluissis@gmail.com o usuario"
+                placeholder="correo@ejemplo.com o usuario"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"

@@ -15,7 +15,7 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
 
 - **Framework**: Next.js 16 (App Router, TypeScript, Tailwind CSS)
 - **Base de Datos**: PostgreSQL (Coolify VPS `colegio-db`) & SQLite (Desarrollo local `dev.db`)
-- **VPS / Hosting**: Coolify en IP `13.140.181.29` (Construcción vía `Dockerfile` multi-stage Node 20-alpine)
+- **VPS / Hosting**: Coolify en IP `13.140.181.29` (Construcción vía `Dockerfile` multi-stage Node 20-alpine & `nixpacks.toml`)
 - **Dominio Público**: [http://colegio.13.140.181.29.sslip.io](http://colegio.13.140.181.29.sslip.io)
 - **Repositorio GitHub**: `https://github.com/guaricool/Colegio.git` (rama `main`)
 
@@ -23,7 +23,8 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
 
 ## 🚀 Módulos Implementados
 
-- **Dockerfile Multi-Stage Optimizado**: Solución al fallo `ECONNRESET` de Nixpacks en Coolify. Compilación ligera y ultra rápida usando `node:20-alpine`.
+- **Privacidad y Eliminación de Marcas de Agua Personales**: Limpieza total de datos personales en los placeholders/marcas de agua de los formularios de Login, Registro y Configuración de usuarios.
+- **Dockerfile & Nixpacks.toml Optimizado**: Solución al fallo `ECONNRESET` de Nixpacks en Coolify. Compilación ligera usando `npm install --legacy-peer-deps` y `npx prisma generate`.
 - **Bloqueo Total Administrativo & AdminAuthGuard (`AdminAuthGuard.tsx`)**: Protección global de las 6 páginas administrativas (`/dashboard`, `/cobros`, `/estudiantes`, `/whatsapp`, `/reportes`, `/configuracion`). Si no hay sesión válida iniciada en `/admin/login`, se bloquea el 100% de la vista y se redirige automáticamente al login.
 - **Autenticación Administrativa & Control de Roles (RBAC)**:
   - **SuperAdmin**: `cpierluissis@gmail.com` con acceso total al 100% del sistema sin restricciones.
