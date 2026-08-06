@@ -16,7 +16,11 @@ import {
   AlertCircle,
   X,
   Zap,
-  ShieldCheck
+  ShieldCheck,
+  Camera,
+  Upload,
+  BrainCircuit,
+  FileCheck
 } from 'lucide-react';
 import { formatUsd, formatVes, formatDate } from '@/lib/utils';
 import { generatePaymentReceiptPDF } from '@/lib/pdfGenerator';
@@ -37,6 +41,10 @@ export default function RepresentantePortalPage() {
   const [payReference, setPayReference] = useState<string>('');
   const [payNotes, setPayNotes] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
+
+  // IA Vision OCR
+  const [scanningImage, setScanningImage] = useState(false);
+  const [ocrSuccess, setOcrSuccess] = useState<string | null>(null);
 
   // Campos C2P Dinero Rápido
   const [c2pCedula, setC2pCedula] = useState<string>('');
@@ -104,6 +112,50 @@ export default function RepresentantePortalPage() {
     setPayReference('');
     setPayNotes('');
     setC2pKey('');
+    setOcrSuccess(null);
+  };
+
+  const handleImageUploadOcr = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setScanningImage(true);
+    setOcrSuccess(null);
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64 = event.target?.result as string;
+
+      try {
+        const res = await fetch('/api/payments/ocr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: base64 }),
+        });
+
+        const json = await res.json();
+
+        if (res.ok && json.data) {
+          const data = json.data;
+          if (data.reference) setPayReference(data.reference);
+
+          if (data.amountVes && data.amountVes > 0 && bcvUsd > 0) {
+            const calculatedUsd = (data.amountVes / bcvUsd).toFixed(2);
+            setPayAmountUsd(calculatedUsd);
+          } else if (data.amountUsd && data.amountUsd > 0) {
+            setPayAmountUsd(data.amountUsd.toFixed(2));
+          }
+
+          setOcrSuccess(`IA: Referencia "${data.reference}" y datos del Banco Provincial detectados exitosamente.`);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setScanningImage(false);
+      }
+    };
+
+    reader.readAsDataURL(file);
   };
 
   const handleRegisterPayment = async (e: React.FormEvent) => {
@@ -113,7 +165,6 @@ export default function RepresentantePortalPage() {
     setSubmitting(true);
     try {
       if (payMethod === 'C2P') {
-        // Procesar cobro directo C2P (Dinero Rápido Banco Provincial)
         const c2pPayload = {
           studentFeeId: selectedFee.id,
           cedula: c2pCedula,
@@ -162,7 +213,6 @@ export default function RepresentantePortalPage() {
         return;
       }
 
-      // Proceso regular (Pago Móvil / Zelle / Transferencia)
       const payload = {
         studentFeeId: selectedFee.id,
         method: payMethod,
@@ -390,7 +440,7 @@ export default function RepresentantePortalPage() {
       {/* Modal Reportar Pago sin Tarjeta o C2P Instantáneo */}
       {selectedFee && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-lg shadow-2xl text-white space-y-4 my-8">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-lg shadow-2xl text-white space-y-4 my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 border-b border-slate-800">
               <div>
                 <h3 className="text-lg font-extrabold text-white flex items-center space-x-2">
@@ -402,6 +452,30 @@ export default function RepresentantePortalPage() {
               <button onClick={() => setSelectedFee(null)} className="text-slate-400 hover:text-white p-1 rounded-xl hover:bg-slate-800">
                 <X className="w-5 h-5" />
               </button>
+            </div>
+
+            {/* Banner de Carga de Captura / Foto con IA Gemini */}
+            <div className="bg-gradient-to-r from-indigo-950/80 via-slate-950 to-slate-900 p-4 rounded-2xl border border-indigo-500/40 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 text-xs font-extrabold text-indigo-400">
+                  <BrainCircuit className="w-4 h-4 text-purple-400" />
+                  <span>Escáner de Captura con IA Gemini</span>
+                </div>
+                <label className="cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-extrabold px-3 py-1.5 rounded-xl transition-all flex items-center space-x-1.5">
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>{scanningImage ? 'Analizando...' : 'Subir Foto / Capture'}</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUploadOcr} />
+                </label>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Sube la foto del comprobante de Pago Móvil o Provincial. La IA extraerá la referencia y el monto automáticamente.
+              </p>
+              {ocrSuccess && (
+                <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] p-2 rounded-xl font-bold flex items-center space-x-1.5">
+                  <FileCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span>{ocrSuccess}</span>
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleRegisterPayment} className="space-y-4 pt-1">
