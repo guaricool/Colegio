@@ -14,7 +14,10 @@ import {
   RefreshCw, 
   Award,
   Zap,
-  Sparkles
+  Sparkles,
+  Lock,
+  UserCheck,
+  Home
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -89,10 +92,12 @@ export default function Navbar() {
     }
   };
 
-  const navItems = [
-    { label: 'Inicio', href: '/', icon: LayoutDashboard },
-    { label: 'Panel Admin', href: '/dashboard', icon: Sparkles },
-    { label: 'Portal Padres (Login)', href: '/representante/login', icon: Award },
+  const isLandingPage = pathname === '/';
+  const isParentPortal = pathname.startsWith('/representante');
+  const isAdminArea = !isLandingPage && !isParentPortal;
+
+  const adminNavItems = [
+    { label: 'Dashboard Admin', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Cobros y Recibos', href: '/cobros', icon: CreditCard },
     { label: 'Estudiantes', href: '/estudiantes', icon: GraduationCap },
     { label: 'Recordatorios WhatsApp', href: '/whatsapp', icon: MessageSquare },
@@ -137,54 +142,86 @@ export default function Navbar() {
                 U.E. Ramón Pierluissi Ramírez
               </span>
               <span className="text-[11px] text-emerald-400 font-semibold tracking-wide block">
-                Sistema de Cobranzas & Gestión Financiera
+                {isAdminArea ? 'Panel de Gestión Administrativa' : isParentPortal ? 'Portal de Representantes' : 'Plataforma Institucional'}
               </span>
             </div>
           </Link>
 
-          {/* Tasa BCV Badge con Efecto Neon */}
+          {/* Tasa BCV Badge & Accesos en Header */}
           <div className="flex items-center space-x-3">
-            <div className="bg-slate-900/90 border border-emerald-600/40 rounded-2xl px-4 py-1.5 flex items-center space-x-2.5 shadow-lg shadow-emerald-900/20">
+            <div className="bg-slate-900/90 border border-emerald-600/40 rounded-2xl px-3.5 py-1.5 flex items-center space-x-2 shadow-lg shadow-emerald-900/20">
               <div className="flex items-center text-xs font-black text-amber-400 tracking-wider">
                 <DollarSign className="w-3.5 h-3.5 mr-0.5 text-amber-400" />
                 TASA BCV:
               </div>
-              <span className="font-extrabold text-sm text-gradient-emerald">
-                {bcvRate !== null ? `${bcvRate.toFixed(2)} Bs./$` : 'Cargando...'}
+              <span className="font-extrabold text-xs sm:text-sm text-gradient-emerald">
+                {bcvRate !== null ? `${bcvRate.toFixed(2)} Bs./$` : '...'}
               </span>
               <button
                 onClick={handleSyncAutoBcv}
-                title="Sincronizar automáticamente Tasa Oficial BCV del Banco Central de Venezuela"
-                className="p-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-xl text-white transition-all shadow-md flex items-center space-x-1 hover:scale-105 active:scale-95"
+                title="Sincronizar Tasa BCV"
+                className="p-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-lg text-white transition-all shadow-md flex items-center hover:scale-105"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loadingRate ? 'animate-spin' : ''}`} />
-                <span className="text-[10px] font-extrabold hidden sm:inline">Auto Sync</span>
+                <RefreshCw className={`w-3 h-3 ${loadingRate ? 'animate-spin' : ''}`} />
               </button>
             </div>
+
+            {/* Acceso directo si se está en la Landing Page */}
+            {isLandingPage && (
+              <div className="flex items-center space-x-2">
+                <Link
+                  href="/representante/login"
+                  className="hidden sm:flex items-center space-x-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold px-3.5 py-2 rounded-xl shadow-lg shadow-emerald-600/30 transition-all hover:scale-105"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Portal Padres</span>
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center space-x-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs font-extrabold px-3.5 py-2 rounded-xl transition-all"
+                >
+                  <Lock className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Admin</span>
+                </Link>
+              </div>
+            )}
+
+            {/* Botón Inicio si se está en el portal de padres o admin */}
+            {!isLandingPage && (
+              <Link
+                href="/"
+                className="flex items-center space-x-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors"
+              >
+                <Home className="w-3.5 h-3.5 text-slate-400" />
+                <span className="hidden sm:inline">Inicio</span>
+              </Link>
+            )}
           </div>
         </div>
 
-        {/* Links Navigation Bar con Micro-interacciones */}
-        <nav className="flex space-x-1.5 overflow-x-auto pb-2.5 pt-1.5 no-scrollbar border-t border-slate-800/80">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
-                  isActive
-                    ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 text-white shadow-lg shadow-emerald-600/30 scale-105 border border-emerald-400/30'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Solo se muestran los menús administrativos si se está en una ruta administrativa */}
+        {isAdminArea && (
+          <nav className="flex space-x-1.5 overflow-x-auto pb-2.5 pt-1.5 no-scrollbar border-t border-slate-800/80">
+            {adminNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+                    isActive
+                      ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 text-white shadow-lg shadow-emerald-600/30 scale-105 border border-emerald-400/30'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        )}
       </div>
 
       {/* Modal Cambio Tasa BCV */}

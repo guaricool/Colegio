@@ -23,7 +23,8 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
 
 ## 🚀 Módulos Implementados
 
-- **Landing Page Institucional (`/`)**: Presentación oficial de la U.E. Ramón Pierluissi Ramírez (Sede Prebo II), indicador neón en vivo de la Tasa BCV Oficial y tarjetas de doble acceso (Portal de Padres vs Portal Administrativo).
+- **Landing Page Limpia (`/`)**: Presentación oficial de la U.E. Ramón Pierluissi Ramírez (Sede Prebo II), indicador neón en vivo de la Tasa BCV Oficial y botones de doble acceso sin barra de menús administrativos visibles.
+- **Navegación Contextual (`Navbar.tsx`)**: Oculta opciones administrativas en `/` y `/representante/*`, mostrándolas únicamente en el módulo administrativo (`/dashboard`, `/cobros`, `/estudiantes`, etc.).
 - **Dashboard Administrativo (`/dashboard`)**: KPIs de ingresos USD/VES, tasa BCV, gráfico de recaudación por métodos y mensualidades recientes.
 - **Cobros & Recibos (`/cobros`)**: Gestión de mensualidades pendientes, abonos, pagos con Pago Móvil/Zelle y emisión de recibos PDF al instante.
 - **Portal de Representantes (`/representante/login` & `/representante/portal`)**: Acceso para padres mediante Cédula de Identidad, estado de cuenta a Tasa BCV y reporte de Pago Móvil/Zelle sin requerir tarjetas.
