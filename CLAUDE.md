@@ -1,6 +1,6 @@
 # Memoria del Proyecto - Colegio Ramón Pierluissi Ramírez
 
-Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación de Usuarios (SuperAdmin, Admin, Cobranza) y Exportador para Profit Plus 2K12.
+Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación Obligatoria & AdminAuthGuard (SuperAdmin, Admin, Cobranza) y Exportador para Profit Plus 2K12.
 
 ## 📌 Reglas de Flujo de Trabajo (Obligatorias)
 
@@ -23,6 +23,7 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
 
 ## 🚀 Módulos Implementados
 
+- **Bloqueo Total Administrativo & AdminAuthGuard (`AdminAuthGuard.tsx`)**: Protección global de las 6 páginas administrativas (`/dashboard`, `/cobros`, `/estudiantes`, `/whatsapp`, `/reportes`, `/configuracion`). Si no hay sesión válida iniciada en `/admin/login`, se bloquea el 100% de la vista y se redirige automáticamente al login.
 - **Autenticación Administrativa & Control de Roles (RBAC)**:
   - **SuperAdmin**: `cpierluissis@gmail.com` con acceso total al 100% del sistema sin restricciones.
   - **Administrador General**: Control de alumnos, recibos y reportes.
