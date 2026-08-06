@@ -14,7 +14,9 @@ import {
   Phone,
   Inbox,
   AlertCircle,
-  X
+  X,
+  Zap,
+  ShieldCheck
 } from 'lucide-react';
 import { formatUsd, formatVes, formatDate } from '@/lib/utils';
 import { generatePaymentReceiptPDF } from '@/lib/pdfGenerator';
@@ -22,7 +24,8 @@ import { FeeStatusBadge } from '@/components/FeeStatusBadge';
 
 export default function RepresentantePortalPage() {
   const [repData, setRepData] = useState<any>(null);
-  const [bcvRate, setBcvRate] = useState<number>(755.15);
+  const [bcvUsd, setBcvUsd] = useState<number>(75.51);
+  const [bcvEur, setBcvEur] = useState<number>(81.20);
   const [schoolConfig, setSchoolConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -35,6 +38,12 @@ export default function RepresentantePortalPage() {
   const [payNotes, setPayNotes] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Campos C2P Dinero Rápido
+  const [c2pCedula, setC2pCedula] = useState<string>('');
+  const [c2pPhone, setC2pPhone] = useState<string>('');
+  const [c2pBankCode, setC2pBankCode] = useState<string>('0108');
+  const [c2pKey, setC2pKey] = useState<string>('');
+
   const loadPortalData = async () => {
     setLoading(true);
     try {
@@ -46,7 +55,6 @@ export default function RepresentantePortalPage() {
 
       const session = JSON.parse(sessionStr);
 
-      // Re-fetch datos frescos usando la cédula
       const [loginRes, bcvRes, configRes] = await Promise.all([
         fetch('/api/representatives/login', {
           method: 'POST',
@@ -60,6 +68,8 @@ export default function RepresentantePortalPage() {
       if (loginRes.ok) {
         const freshRep = await loginRes.json();
         setRepData(freshRep);
+        setC2pCedula(freshRep.cedula || '');
+        setC2pPhone(freshRep.phone || '');
       } else {
         router.push('/representante/login');
       }
@@ -67,7 +77,8 @@ export default function RepresentantePortalPage() {
       const bcvJson = await bcvRes.json();
       const configJson = await configRes.json();
 
-      setBcvRate(bcvJson.rate || 755.15);
+      setBcvUsd(bcvJson.usdRate || bcvJson.rate || 75.51);
+      setBcvEur(bcvJson.eurRate || 81.20);
       setSchoolConfig(configJson);
     } catch (e) {
       console.error(e);
@@ -92,6 +103,7 @@ export default function RepresentantePortalPage() {
     setPayMethod('PAGO_MOVIL');
     setPayReference('');
     setPayNotes('');
+    setC2pKey('');
   };
 
   const handleRegisterPayment = async (e: React.FormEvent) => {
@@ -100,12 +112,63 @@ export default function RepresentantePortalPage() {
 
     setSubmitting(true);
     try {
+      if (payMethod === 'C2P') {
+        // Procesar cobro directo C2P (Dinero Rápido Banco Provincial)
+        const c2pPayload = {
+          studentFeeId: selectedFee.id,
+          cedula: c2pCedula,
+          phone: c2pPhone,
+          bankCode: c2pBankCode,
+          c2pKey: c2pKey,
+          amountUsd: parseFloat(payAmountUsd),
+          bcvRate: bcvUsd,
+          notes: payNotes,
+        };
+
+        const c2pRes = await fetch('/api/payments/c2p', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(c2pPayload),
+        });
+
+        const c2pData = await c2pRes.json();
+
+        if (c2pRes.ok) {
+          generatePaymentReceiptPDF({
+            receiptNumber: c2pData.receiptNumber,
+            paymentDate: new Date().toISOString(),
+            schoolName: schoolConfig?.name || 'U.E. Ramón Pierluissi Ramírez',
+            schoolRif: schoolConfig?.rif || 'J-31489201-4',
+            schoolPhone: schoolConfig?.phone || '+58 414-7890123',
+            schoolAddress: schoolConfig?.address || 'Valencia, Carabobo',
+            representativeName: repData.name,
+            representativeCedula: repData.cedula,
+            studentName: `${selectedFee.studentObj?.firstName} ${selectedFee.studentObj?.lastName}`,
+            studentGrade: `${selectedFee.studentObj?.grade?.name} (${selectedFee.studentObj?.grade?.section})`,
+            conceptName: selectedFee.conceptName,
+            method: `C2P Instantáneo (${c2pBankCode === '0108' ? 'Provincial' : 'Interbancario'})`,
+            reference: c2pData.authCode,
+            amountUsd: c2pData.amountUsd,
+            amountVes: c2pData.amountVes,
+            bcvRate: bcvUsd,
+            notes: `Pago Débito C2P Aprobado | Ref: ${c2pData.authCode}`,
+          });
+
+          setSelectedFee(null);
+          await loadPortalData();
+        } else {
+          alert(c2pData.error || 'Error al procesar el cobro C2P');
+        }
+        return;
+      }
+
+      // Proceso regular (Pago Móvil / Zelle / Transferencia)
       const payload = {
         studentFeeId: selectedFee.id,
         method: payMethod,
         reference: payReference,
         amountUsd: parseFloat(payAmountUsd),
-        bcvRate: bcvRate,
+        bcvRate: bcvUsd,
         notes: payNotes,
       };
 
@@ -118,7 +181,6 @@ export default function RepresentantePortalPage() {
       const paymentData = await res.json();
 
       if (res.ok) {
-        // Generar recibo digital PDF inmediato con membrete oficial
         generatePaymentReceiptPDF({
           receiptNumber: paymentData.receiptNumber,
           paymentDate: paymentData.paymentDate,
@@ -189,27 +251,29 @@ export default function RepresentantePortalPage() {
         </button>
       </div>
 
-      {/* Datos Bancarios Oficiales para Pago Móvil / Zelle */}
+      {/* Datos Bancarios Oficiales para Pago Móvil, C2P y Zelle */}
       <div className="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 shadow-2xl space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h2 className="text-base font-extrabold text-white flex items-center space-x-2">
             <Building2 className="w-5 h-5 text-amber-400" />
-            <span>Datos Bancarios Oficiales (Para realizar su transferencia)</span>
+            <span>Datos Bancarios Oficiales (Pago Móvil & C2P Provincial)</span>
           </h2>
-          <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30">
-            Tasa BCV del Día: {bcvRate.toFixed(2)} Bs./USD
-          </span>
+          <div className="flex items-center space-x-2 text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/30">
+            <span>BCV USD: {bcvUsd.toFixed(2)} Bs.</span>
+            <span>|</span>
+            <span className="text-blue-400">BCV EUR: {bcvEur.toFixed(2)} Bs.</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-          {/* Pago Móvil */}
+          {/* Pago Móvil & C2P Dinero Rápido */}
           <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl space-y-1.5 text-xs">
             <div className="font-extrabold text-emerald-400 text-sm flex items-center space-x-1.5">
               <Phone className="w-4 h-4" />
-              <span>Pago Móvil (Bolívares VES)</span>
+              <span>Pago Móvil & C2P (Bolívares VES)</span>
             </div>
             <div className="text-slate-300">
-              Banco: <strong className="text-white">{schoolConfig?.pagoMovilBank || 'Banesco (0134)'}</strong>
+              Banco: <strong className="text-white">{schoolConfig?.pagoMovilBank || 'Banesco (0134) / Provincial (0108)'}</strong>
             </div>
             <div className="text-slate-300">
               Teléfono: <strong className="text-white font-mono">{schoolConfig?.pagoMovilPhone || '0414-7890123'}</strong>
@@ -284,7 +348,7 @@ export default function RepresentantePortalPage() {
                   ) : (
                     student.fees.map((fee: any) => {
                       const pendingUsd = Math.max(0, fee.amountUsd - fee.paidUsd);
-                      const pendingVes = pendingUsd * bcvRate;
+                      const pendingVes = pendingUsd * bcvUsd;
                       const isPaid = fee.status === 'PAID';
 
                       return (
@@ -306,7 +370,7 @@ export default function RepresentantePortalPage() {
                                 onClick={() => openPayModal(fee, student)}
                                 className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-[11px] font-extrabold px-3.5 py-1.5 rounded-xl shadow-lg shadow-emerald-600/30 transition-all hover:scale-105"
                               >
-                                Reportar Pago
+                                Pagar / C2P
                               </button>
                             ) : (
                               <span className="text-xs text-slate-500 font-semibold">Al Día</span>
@@ -323,7 +387,7 @@ export default function RepresentantePortalPage() {
         ))}
       </div>
 
-      {/* Modal Reportar Pago sin Tarjeta */}
+      {/* Modal Reportar Pago sin Tarjeta o C2P Instantáneo */}
       {selectedFee && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-lg shadow-2xl text-white space-y-4 my-8">
@@ -331,7 +395,7 @@ export default function RepresentantePortalPage() {
               <div>
                 <h3 className="text-lg font-extrabold text-white flex items-center space-x-2">
                   <CreditCard className="w-5 h-5 text-emerald-400" />
-                  <span>Reportar Pago (Sin Tarjeta)</span>
+                  <span>Procesar Pago ({payMethod === 'C2P' ? 'C2P Instantáneo' : 'Sin Tarjeta'})</span>
                 </h3>
                 <p className="text-xs text-emerald-400 font-bold mt-0.5">{selectedFee.conceptName}</p>
               </div>
@@ -350,7 +414,7 @@ export default function RepresentantePortalPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Tasa Oficial BCV:</span>
-                  <span className="font-black text-amber-400">{bcvRate.toFixed(2)} Bs./USD</span>
+                  <span className="font-black text-amber-400">{bcvUsd.toFixed(2)} Bs./USD</span>
                 </div>
                 <div className="flex justify-between pt-1.5 border-t border-slate-800">
                   <span className="text-slate-400">Saldo a Pagar:</span>
@@ -362,7 +426,122 @@ export default function RepresentantePortalPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Monto a Reportar ($ USD)
+                  Método de Pago
+                </label>
+                <select
+                  value={payMethod}
+                  onChange={(e) => setPayMethod(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"
+                >
+                  <option value="C2P">⚡ C2P Cobro Instantáneo (Dinero Rápido Provincial / Banco)</option>
+                  <option value="PAGO_MOVIL">Pago Móvil (Bolívares VES)</option>
+                  <option value="ZELLE">Zelle ($ USD)</option>
+                  <option value="TRANSFERENCIA_VES">Transferencia Bancaria (VES)</option>
+                  <option value="EFECTIVO_USD">Efectivo ($ USD entregado en administración)</option>
+                </select>
+              </div>
+
+              {/* Formulario específico para C2P (Dinero Rápido) */}
+              {payMethod === 'C2P' ? (
+                <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/60 p-4 rounded-2xl border border-indigo-500/30 space-y-3">
+                  <div className="flex items-center space-x-2 text-xs font-bold text-indigo-400">
+                    <Zap className="w-4 h-4 text-amber-400" />
+                    <span>Débito Directo C2P (Banco Provincial / Interbancario)</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-slate-300 font-medium mb-1">Banco Origen del Representante</label>
+                    <select
+                      value={c2pBankCode}
+                      onChange={(e) => setC2pBankCode(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                    >
+                      <option value="0108">0108 - Banco Provincial (BBVA)</option>
+                      <option value="0134">0134 - Banesco</option>
+                      <option value="0102">0102 - Banco de Venezuela (BDV)</option>
+                      <option value="0105">0105 - Banco Mercantil</option>
+                      <option value="0114">0114 - Banco del Caribe (Bancaribe)</option>
+                      <option value="0172">0172 - Bancamiga</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] text-slate-300 font-medium mb-1">Cédula del Titular</label>
+                      <input
+                        type="text"
+                        required
+                        value={c2pCedula}
+                        onChange={(e) => setC2pCedula(e.target.value)}
+                        placeholder="V-14582910"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-slate-300 font-medium mb-1">Teléfono Pago Móvil</label>
+                      <input
+                        type="text"
+                        required
+                        value={c2pPhone}
+                        onChange={(e) => setC2pPhone(e.target.value)}
+                        placeholder="04147890123"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-amber-400 font-bold mb-1">
+                      Clave de Compra C2P (Obtenida en la App de su banco)
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej: 849201"
+                      value={c2pKey}
+                      onChange={(e) => setC2pKey(e.target.value)}
+                      className="w-full bg-slate-950 border border-amber-500/40 rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-amber-400 font-extrabold tracking-widest text-center"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      En su aplicación móvil bancaria, presione la opción &quot;Generar Clave de Pago Móvil / C2P&quot;.
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                /* Formulario Regular */
+                <>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      N° de Referencia Bancaria / Comprobante
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej: 984120 o ZEL-1920"
+                      value={payReference}
+                      onChange={(e) => setPayReference(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Notas / Banco Emisor (Opcional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Enviado desde Banco Mercantil"
+                      value={payNotes}
+                      onChange={(e) => setPayNotes(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Monto a Pagar ($ USD)
                 </label>
                 <input
                   type="number"
@@ -374,53 +553,9 @@ export default function RepresentantePortalPage() {
                 />
                 {payAmountUsd && (
                   <span className="text-xs text-emerald-400 font-extrabold mt-1.5 block">
-                    Equivalente en Bolívares: {formatVes(parseFloat(payAmountUsd || '0') * bcvRate)}
+                    Equivalente en Bolívares: {formatVes(parseFloat(payAmountUsd || '0') * bcvUsd)}
                   </span>
                 )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Método Utilizado
-                </label>
-                <select
-                  value={payMethod}
-                  onChange={(e) => setPayMethod(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"
-                >
-                  <option value="PAGO_MOVIL">Pago Móvil (Bolívares VES)</option>
-                  <option value="ZELLE">Zelle ($ USD)</option>
-                  <option value="TRANSFERENCIA_VES">Transferencia Bancaria (VES)</option>
-                  <option value="EFECTIVO_USD">Efectivo ($ USD entregado en administración)</option>
-                  <option value="EFECTIVO_VES">Efectivo (Bolívares entregado en administración)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  N° de Referencia Bancaria / Comprobante
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: 984120 o ZEL-1920"
-                  value={payReference}
-                  onChange={(e) => setPayReference(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Notas / Banco Emisor (Opcional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej: Enviado desde Banco Mercantil"
-                  value={payNotes}
-                  onChange={(e) => setPayNotes(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
-                />
               </div>
 
               <div className="flex justify-end space-x-3 pt-3">
@@ -437,7 +572,7 @@ export default function RepresentantePortalPage() {
                   className="px-5 py-2.5 text-xs font-extrabold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl shadow-lg shadow-emerald-600/30 flex items-center space-x-2"
                 >
                   <Download className="w-4 h-4" />
-                  <span>{submitting ? 'Registrando...' : 'Confirmar & Descargar Recibo PDF'}</span>
+                  <span>{submitting ? 'Procesando C2P...' : 'Procesar & Descargar Recibo PDF'}</span>
                 </button>
               </div>
             </form>
