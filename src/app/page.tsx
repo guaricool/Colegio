@@ -3,296 +3,246 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { 
-  TrendingUp, 
+  GraduationCap, 
+  UserCheck, 
+  Building2, 
+  ShieldCheck, 
+  Sparkles, 
+  ArrowRight, 
   DollarSign, 
-  AlertTriangle, 
-  Users, 
-  CreditCard, 
-  MessageSquare, 
+  BookOpen, 
   Award,
-  BookOpen,
-  Clock,
+  CreditCard,
+  MessageSquare,
+  Users,
+  Lock,
   ChevronRight,
-  ShieldCheck,
-  Building2,
-  Sparkles,
-  ArrowUpRight
+  PhoneCall,
+  MapPin
 } from 'lucide-react';
-import { formatUsd, formatVes, formatDate, buildWhatsappLink } from '@/lib/utils';
-import { KpiCard } from '@/components/KpiCard';
-import { FeeStatusBadge } from '@/components/FeeStatusBadge';
+import { formatVes } from '@/lib/utils';
 
-export default function DashboardPage() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [recentFees, setRecentFees] = useState<any[]>([]);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [reportsRes, feesRes] = await Promise.all([
-        fetch('/api/reports'),
-        fetch('/api/fees'),
-      ]);
-      const reportsJson = await reportsRes.json();
-      const feesJson = await feesRes.json();
-
-      setData(reportsJson);
-      setRecentFees(feesJson.slice(0, 5));
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function LandingPage() {
+  const [bcvRate, setBcvRate] = useState<number>(755.15);
 
   useEffect(() => {
-    loadData();
+    fetch('/api/bcv')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.rate) setBcvRate(data.rate);
+      })
+      .catch((e) => console.error(e));
   }, []);
 
-  if (loading || !data) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm font-semibold text-slate-300">Cargando panel financiero de U.E. Ramón Pierluissi Ramírez...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const { summary, methodSummary, bcvRate } = data;
-
   return (
-    <div className="space-y-8">
-      {/* Hero Banner Institucional Pierluissi */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-slate-900 to-green-950 border border-emerald-700/40 p-6 sm:p-8 rounded-3xl shadow-2xl">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -z-0 pointer-events-none"></div>
-        <div className="absolute left-1/3 bottom-0 w-64 h-64 bg-teal-500/10 rounded-full blur-2xl -z-0 pointer-events-none"></div>
-        
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
-              <Award className="w-4 h-4 text-amber-400" />
-              <span>Más de 20 Años Formando Líderes con Valores</span>
-            </div>
-            <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
-              U.E. Ramón Pierluissi Ramírez
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-300 font-normal leading-relaxed">
-              Sistema de Cobros & Administración Financiera. Monitoreo multimoneda ($ USD / Bs. VES), emisión de recibos digitalizados y recordatorios automatizados.
-            </p>
-            <div className="pt-1 flex flex-wrap items-center gap-3 text-xs font-semibold text-emerald-300">
-              <span className="flex items-center space-x-1">
-                <Building2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Sede Prebo II (Valencia, Carabobo)</span>
-              </span>
-              <span>•</span>
-              <span className="flex items-center space-x-1">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Tasa BCV Oficial: <strong className="text-amber-400 font-extrabold">{bcvRate.toFixed(2)} Bs./$</strong></span>
-              </span>
-            </div>
+    <div className="space-y-12 pb-12">
+      {/* Hero Section Institucional */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950 border border-emerald-800/40 p-8 sm:p-12 rounded-3xl shadow-2xl glass-panel">
+        <div className="absolute right-0 top-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-3xl -z-0 pointer-events-none"></div>
+        <div className="absolute left-10 bottom-0 w-80 h-80 bg-teal-500/10 rounded-full blur-2xl -z-0 pointer-events-none"></div>
+
+        <div className="relative z-10 max-w-3xl space-y-6">
+          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold shadow-sm">
+            <Award className="w-4 h-4 text-amber-400" />
+            <span>Excelencia Educativa en Valencia, Carabobo</span>
           </div>
 
-          <div className="flex flex-wrap lg:flex-col gap-3">
-            <Link
-              href="/cobros"
-              className="flex items-center justify-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold px-6 py-3.5 rounded-2xl shadow-xl shadow-emerald-600/30 transition-all hover:scale-105"
-            >
-              <CreditCard className="w-4 h-4" />
-              <span>Registrar Pago & Recibo</span>
-            </Link>
-            <Link
-              href="/whatsapp"
-              className="flex items-center justify-center space-x-2 bg-slate-900/90 hover:bg-slate-800 text-emerald-400 border border-emerald-700/50 text-xs font-extrabold px-6 py-3.5 rounded-2xl transition-all hover:scale-105"
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>Recordatorios WhatsApp</span>
-            </Link>
+          <h1 className="font-heading text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+            Unidad Educativa <br />
+            <span className="text-gradient-emerald">Ramón Pierluissi Ramírez</span>
+          </h1>
+
+          <p className="text-sm sm:text-base text-slate-300 font-normal leading-relaxed">
+            Formando líderes integrales con valores, excelencia académica e innovación tecnológica en un ambiente seguro, seguro y estructurado.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex items-center space-x-2 bg-slate-950/80 border border-emerald-500/30 px-4 py-2 rounded-2xl text-xs font-extrabold text-white">
+              <DollarSign className="w-4 h-4 text-amber-400" />
+              <span>Tasa Oficial BCV del Día: <strong className="text-amber-400">{bcvRate.toFixed(2)} Bs./$</strong></span>
+            </div>
+            <div className="flex items-center space-x-2 bg-slate-950/80 border border-slate-800 px-4 py-2 rounded-2xl text-xs text-slate-300">
+              <MapPin className="w-4 h-4 text-emerald-400" />
+              <span>Sede Prebo II</span>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* KPI Cards Grid Modular */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard
-          title="Ingresos Recaudados"
-          usdAmount={summary.totalCollectedUsd}
-          vesAmount={summary.totalCollectedVes}
-          icon={TrendingUp}
-          colorScheme="emerald"
-        />
-        <KpiCard
-          title="Cuentas por Cobrar"
-          usdAmount={summary.totalPendingUsd}
-          vesAmount={summary.totalPendingVes}
-          icon={Clock}
-          colorScheme="amber"
-        />
-        <KpiCard
-          title="Deuda Vencida"
-          usdAmount={summary.totalOverdueUsd}
-          vesAmount={summary.totalOverdueVes}
-          icon={AlertTriangle}
-          colorScheme="rose"
-        />
-        <KpiCard
-          title="Eficiencia Cobros"
-          usdAmount={0}
-          icon={ShieldCheck}
-          colorScheme="blue"
-          progressPercent={summary.collectionEfficiencyPercent}
-        />
-      </div>
-
-      {/* Recaudación por Método de Pago & Matrícula */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Desglose por Método de Pago */}
-        <div className="lg:col-span-2 bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
-          <h2 className="text-base font-extrabold text-white flex items-center space-x-2">
-            <DollarSign className="w-5 h-5 text-emerald-400" />
-            <span>Ingresos por Método de Pago (Pago Móvil & Zelle)</span>
+      {/* SECCIÓN DOBLE PORTAL DE ACCESO (Padres vs Administración) */}
+      <section className="space-y-6">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <h2 className="text-2xl font-extrabold text-white tracking-tight">
+            Portales de Acceso al Sistema
           </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {methodSummary.map((m: any) => {
-              const labelMap: Record<string, { title: string; color: string }> = {
-                PAGO_MOVIL: { title: 'Pago Móvil Banesco/Mercantil', color: 'from-emerald-600 to-teal-700' },
-                ZELLE: { title: 'Zelle (USD)', color: 'from-indigo-600 to-purple-700' },
-                TRANSFERENCIA_VES: { title: 'Transferencia Bolívares', color: 'from-blue-600 to-cyan-700' },
-                EFECTIVO_USD: { title: 'Efectivo USD', color: 'from-amber-600 to-orange-700' },
-                EFECTIVO_VES: { title: 'Efectivo Bolívares', color: 'from-slate-600 to-zinc-700' },
-              };
-              const meta = labelMap[m.method] || { title: m.method, color: 'from-slate-600 to-slate-800' };
-
-              return (
-                <div
-                  key={m.method}
-                  className="bg-slate-950/80 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-inner hover:border-slate-700 transition-colors"
-                >
-                  <div>
-                    <span className="text-xs font-semibold text-slate-400 block">{meta.title}</span>
-                    <span className="text-lg font-black text-white block mt-0.5">{formatUsd(m.usd)}</span>
-                    <span className="text-xs text-emerald-400 font-bold">{formatVes(m.ves)}</span>
-                  </div>
-                  <div className={`px-3 py-1 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r ${meta.color} shadow-md`}>
-                    {m.count} {m.count === 1 ? 'pago' : 'pagos'}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <p className="text-xs text-slate-400">
+            Seleccione la opción correspondiente según su perfil para ingresar a la plataforma de cobros y administración.
+          </p>
         </div>
 
-        {/* Matrícula Niveles Académicos */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl flex flex-col justify-between space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Card 1: Portal de Padres & Representantes */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/40 border border-emerald-700/40 rounded-3xl p-8 shadow-2xl glass-card-hover flex flex-col justify-between space-y-6 relative overflow-hidden group">
+            <div className="absolute -right-8 -top-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
+
+            <div className="space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-xl shadow-emerald-600/30">
+                <UserCheck className="w-7 h-7" />
+              </div>
+
+              <div>
+                <span className="text-xs font-extrabold text-emerald-400 uppercase tracking-wider block">
+                  Para Padres y Representantes
+                </span>
+                <h3 className="text-xl font-extrabold text-white mt-1">
+                  Portal de Representantes (Pago Sin Tarjeta)
+                </h3>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Consulte su estado de cuenta en USD y Bolívares a la Tasa BCV del día. Reporte sus transferencias de <strong>Pago Móvil o Zelle</strong> ingresando únicamente el número de referencia y obtenga su recibo formal en PDF de inmediato.
+              </p>
+
+              <ul className="space-y-2 text-xs text-slate-300 font-medium">
+                <li className="flex items-center space-x-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Acceso simplificado con su Cédula de Identidad</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Sin solicitar datos de tarjeta de crédito/débito</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Descarga directa de recibos digitalizados</span>
+                </li>
+              </ul>
+            </div>
+
+            <Link
+              href="/representante/login"
+              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-xl shadow-emerald-600/30 transition-all flex items-center justify-center space-x-2 text-xs hover:scale-105"
+            >
+              <span>Ingresar al Portal de Padres</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {/* Card 2: Portal Administrativo */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 rounded-3xl p-8 shadow-2xl glass-card-hover flex flex-col justify-between space-y-6 relative overflow-hidden group">
+            <div className="absolute -right-8 -top-8 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-all"></div>
+
+            <div className="space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 text-white flex items-center justify-center shadow-xl shadow-indigo-600/30">
+                <Building2 className="w-7 h-7" />
+              </div>
+
+              <div>
+                <span className="text-xs font-extrabold text-indigo-400 uppercase tracking-wider block">
+                  Para Administración y Directiva
+                </span>
+                <h3 className="text-xl font-extrabold text-white mt-1">
+                  Portal Administrativo & Financiero
+                </h3>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Panel de control para la gestión de mensualidades escolares, cobros asistidos, envío masivo de recordatorios por WhatsApp, auditoría de flujo de caja y exportación a Excel.
+              </p>
+
+              <ul className="space-y-2 text-xs text-slate-300 font-medium">
+                <li className="flex items-center space-x-2">
+                  <ShieldCheck className="w-4 h-4 text-indigo-400" />
+                  <span>Control de cuotas, becas y descuentos</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <ShieldCheck className="w-4 h-4 text-indigo-400" />
+                  <span>Recordatorios automatizados por WhatsApp</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <ShieldCheck className="w-4 h-4 text-indigo-400" />
+                  <span>Libro de ingresos y auditoría contable</span>
+                </li>
+              </ul>
+            </div>
+
+            <Link
+              href="/dashboard"
+              className="w-full bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-extrabold py-3.5 px-6 rounded-2xl transition-all flex items-center justify-center space-x-2 text-xs hover:scale-105"
+            >
+              <span>Acceso Administrativo</span>
+              <Lock className="w-4 h-4 text-indigo-400" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Niveles Educativos */}
+      <section className="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-base font-extrabold text-white flex items-center space-x-2">
-              <BookOpen className="w-5 h-5 text-indigo-400" />
-              <span>Niveles Académicos Pierluissi</span>
+            <h2 className="text-xl font-extrabold text-white flex items-center space-x-2">
+              <BookOpen className="w-6 h-6 text-emerald-400" />
+              <span>Niveles Académicos Institucionales</span>
             </h2>
-
-            <div className="space-y-3 mt-4">
-              <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800/80 text-xs">
-                <span className="font-bold text-emerald-400 block text-xs">Maternal & Preescolar</span>
-                <span className="text-slate-400 text-[11px]">Metodología vivencial, ABN y tecnología</span>
-              </div>
-              <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800/80 text-xs">
-                <span className="font-bold text-teal-400 block text-xs">Educación Básica (1º a 6º Grado)</span>
-                <span className="text-slate-400 text-[11px]">Pensamiento crítico y laboratorios STEAM</span>
-              </div>
-              <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800/80 text-xs">
-                <span className="font-bold text-indigo-400 block text-xs">Bachillerato (1º a 5º Año)</span>
-                <span className="text-slate-400 text-[11px]">Formación integral con programa SEL</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-slate-800/80">
-            <Link
-              href="/estudiantes"
-              className="w-full flex items-center justify-center space-x-2 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold py-3 rounded-xl transition-all"
-            >
-              <span>Ver Matrícula Completa</span>
-              <ChevronRight className="w-4 h-4 text-emerald-400" />
-            </Link>
+            <p className="text-xs text-slate-400 mt-1">
+              Programa de formación integral diseñado para cada etapa de desarrollo del estudiante.
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Cobros Recientes */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-extrabold text-white flex items-center space-x-2">
-            <Clock className="w-5 h-5 text-emerald-400" />
-            <span>Últimos Cobros Registrados</span>
-          </h2>
-          <Link href="/cobros" className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1">
-            <span>Ver Todos</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </Link>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-slate-950/80 border border-slate-800/80 p-5 rounded-2xl space-y-2">
+            <span className="text-xs font-bold text-emerald-400 block">Maternal & Preescolar</span>
+            <h4 className="text-sm font-black text-white">Educación Inicial</h4>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Metodología vivencial, desarrollo psicomotor, ABN y primera aproximación tecnológica en aulas adaptadas.
+            </p>
+          </div>
+
+          <div className="bg-slate-950/80 border border-slate-800/80 p-5 rounded-2xl space-y-2">
+            <span className="text-xs font-bold text-teal-400 block">1º a 6º Grado</span>
+            <h4 className="text-sm font-black text-white">Educación Primaria</h4>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Consolidación del pensamiento lógico-matemático, expresión oral/escrita y laboratorios prácticos STEAM.
+            </p>
+          </div>
+
+          <div className="bg-slate-950/80 border border-slate-800/80 p-5 rounded-2xl space-y-2">
+            <span className="text-xs font-bold text-indigo-400 block">1º a 3º Año</span>
+            <h4 className="text-sm font-black text-white">Media General</h4>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Profundización científica, razonamiento cuantitativo y programas de educación socioemocional SEL.
+            </p>
+          </div>
+
+          <div className="bg-slate-950/80 border border-slate-800/80 p-5 rounded-2xl space-y-2">
+            <span className="text-xs font-bold text-purple-400 block">4º y 5º Año</span>
+            <h4 className="text-sm font-black text-white">Diversificado</h4>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Orientación vocacional universitaria, proyectos de desarrollo comunitario y liderazgo ejecutivo.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Ubicación y Contacto */}
+      <footer className="bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 p-8 rounded-3xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-400">
+        <div className="space-y-1 text-center md:text-left">
+          <div className="font-heading font-extrabold text-base text-white">
+            U.E. Ramón Pierluissi Ramírez
+          </div>
+          <p>Sede Prebo II, Valencia, Estado Carabobo, Venezuela.</p>
+          <p className="text-emerald-400 font-semibold">RIF: J-31489201-4 | Código DEA: S3489D0804</p>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950 text-slate-400 font-semibold uppercase tracking-wider">
-              <tr>
-                <th className="px-4 py-3 rounded-l-xl">Estudiante</th>
-                <th className="px-4 py-3">Concepto</th>
-                <th className="px-4 py-3">Monto ($)</th>
-                <th className="px-4 py-3">Vencimiento</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3 rounded-r-xl text-right">Acción</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {recentFees.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500 font-medium">
-                    No hay mensualidades ni cargos cargados aún. Utiliza el botón &quot;Estudiantes&quot; para registrar la matrícula escolar.
-                  </td>
-                </tr>
-              ) : (
-                recentFees.map((fee: any) => {
-                  const isPaid = fee.status === 'PAID';
-                  const repPhone = fee.student?.representative?.phone || '';
-                  const waMessage = `Estimado(a) *${fee.student?.representative?.name}*, le saludamos de la Administración de la *U.E. Ramón Pierluissi Ramírez*. Le recordamos que la mensualidad (${fee.conceptName}) de ${fee.student?.firstName} ${fee.student?.lastName} presenta un saldo pendiente de ${formatUsd(fee.amountUsd - fee.paidUsd)} (Eqv. ${formatVes((fee.amountUsd - fee.paidUsd) * bcvRate)} a Tasa BCV ${bcvRate.toFixed(2)}). Agradecemos reportar su pago vía Pago Móvil o Zelle. ¡Muchas gracias!`;
-
-                  return (
-                    <tr key={fee.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="px-4 py-3.5 font-bold text-slate-200">
-                        <div>{fee.student?.firstName} {fee.student?.lastName}</div>
-                        <div className="text-[10px] text-emerald-400 font-normal">{fee.student?.grade?.name}</div>
-                      </td>
-                      <td className="px-4 py-3.5 text-slate-300">{fee.conceptName}</td>
-                      <td className="px-4 py-3.5 font-extrabold text-white">{formatUsd(fee.amountUsd)}</td>
-                      <td className="px-4 py-3.5 text-slate-400">{formatDate(fee.dueDate)}</td>
-                      <td className="px-4 py-3.5">
-                        <FeeStatusBadge status={fee.status} />
-                      </td>
-                      <td className="px-4 py-3.5 text-right space-x-2">
-                        {!isPaid && repPhone && (
-                          <a
-                            href={buildWhatsappLink(repPhone, waMessage)}
-                            target="_blank"
-                            rel="noreferrer"
-                            title="Enviar aviso por WhatsApp"
-                            className="inline-flex items-center space-x-1 text-[11px] font-bold text-emerald-400 hover:text-white bg-emerald-950/80 border border-emerald-800/80 px-3 py-1 rounded-xl transition-all hover:bg-emerald-600 shadow-sm"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>WhatsApp</span>
-                          </a>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+        <div className="flex flex-wrap items-center justify-center gap-4 text-slate-300">
+          <div className="flex items-center space-x-2 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800">
+            <PhoneCall className="w-4 h-4 text-emerald-400" />
+            <span>+58 414-7890123</span>
+          </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }

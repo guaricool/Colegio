@@ -90,10 +90,11 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { label: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { label: 'Inicio', href: '/', icon: LayoutDashboard },
+    { label: 'Panel Admin', href: '/dashboard', icon: Sparkles },
+    { label: 'Portal Padres (Login)', href: '/representante/login', icon: Award },
     { label: 'Cobros y Recibos', href: '/cobros', icon: CreditCard },
     { label: 'Estudiantes', href: '/estudiantes', icon: GraduationCap },
-    { label: 'Portal Padres (Login)', href: '/representante/login', icon: Award },
     { label: 'Recordatorios WhatsApp', href: '/whatsapp', icon: MessageSquare },
     { label: 'Reportes Contables', href: '/reportes', icon: FileSpreadsheet },
     { label: 'Configuración', href: '/configuracion', icon: Settings },

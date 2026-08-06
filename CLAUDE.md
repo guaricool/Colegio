@@ -1,10 +1,10 @@
 # Memoria del Proyecto - Colegio Ramón Pierluissi Ramírez
 
-Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Portal de Representantes (Pago Sin Tarjeta) y Reportes Contables adaptados a Venezuela.
+Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Portal de Representantes (Pago Sin Tarjeta), Landing Page Institucional y Reportes Contables adaptados a Venezuela.
 
 ## 📌 Reglas de Flujo de Trabajo (Obligatorias)
 
-1. **Memoria de Proyecto**: Actualizar este archivo (`CLAUDE.md`) con cada cambio o nueva característica.
+1. **Memoria de Proyecto**: Actualizar este archivo (`AGENTS.md` / `CLAUDE.md`) con cada cambio o nueva característica.
 2. **Grafo de Conocimiento (`/graphify`)**: Ejecutar `/graphify` para actualizar la estructura del grafo de conocimiento.
 3. **Despliegue Automático VPS**: Ejecutar `git push origin main` tras cada commit para desplegar en Coolify VPS ([http://colegio.13.140.181.29.sslip.io](http://colegio.13.140.181.29.sslip.io)).
 4. **Sincronización Prisma**: Ejecutar `npx prisma db push` cuando la modificación toque `prisma/schema.prisma`.
@@ -23,7 +23,8 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
 
 ## 🚀 Módulos Implementados
 
-- **Dashboard Principal (`/`)**: KPIs de ingresos USD/VES, tasa BCV, gráfico de recaudación por métodos y mensualidades recientes.
+- **Landing Page Institucional (`/`)**: Presentación oficial de la U.E. Ramón Pierluissi Ramírez (Sede Prebo II), indicador neón en vivo de la Tasa BCV Oficial y tarjetas de doble acceso (Portal de Padres vs Portal Administrativo).
+- **Dashboard Administrativo (`/dashboard`)**: KPIs de ingresos USD/VES, tasa BCV, gráfico de recaudación por métodos y mensualidades recientes.
 - **Cobros & Recibos (`/cobros`)**: Gestión de mensualidades pendientes, abonos, pagos con Pago Móvil/Zelle y emisión de recibos PDF al instante.
 - **Portal de Representantes (`/representante/login` & `/representante/portal`)**: Acceso para padres mediante Cédula de Identidad, estado de cuenta a Tasa BCV y reporte de Pago Móvil/Zelle sin requerir tarjetas.
 - **Estudiantes & Becas (`/estudiantes`)**: Registro de representantes, alumnos, grados escolares, porcentaje de beca y facturación masiva.
