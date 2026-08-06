@@ -10,18 +10,26 @@ generator client {
 model BcvRate {
   id        String   @id @default(uuid())
   rate      Float
+  eurRate   Float    @default(0)
   date      DateTime @default(now())
   createdAt DateTime @default(now())
 }
 
 model SchoolConfig {
-  id          String @id @default("default")
-  name        String @default("Colegio Ramón Pierluissi")
-  rif         String @default("J-12345678-9")
-  phone       String @default("+58 414-0000000")
-  email       String @default("admin@colegioramonpierluissi.com")
-  address     String @default("Venezuela")
-  bankDetails String @default("Pago Móvil: Banesco (0134) - CI: 12345678 - Tel: 04140000000\nZelle: pagos@colegioramonpierluissi.com")
+  id                  String  @id @default("default")
+  name                String  @default("Colegio Ramón Pierluissi")
+  rif                 String  @default("J-31489201-4")
+  phone               String  @default("+58 414-7890123")
+  email               String  @default("admonpierluissi@gmail.com")
+  address             String  @default("Prebo II, Valencia, Carabobo")
+  pagoMovilBank       String  @default("Banesco (0134)")
+  pagoMovilPhone      String  @default("0414-7890123")
+  pagoMovilRif        String  @default("J-31489201-4")
+  zelleEmail          String  @default("pagos@colegioramonpierluissi.com")
+  zelleName           String  @default("Colegio Ramón Pierluissi C.A.")
+  totalPagoApiKey     String?
+  totalPagoMerchantId String?
+  provincialC2PKey    String?
 }
 
 model Representative {
@@ -73,6 +81,7 @@ model StudentFee {
   studentId   String
   student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
   conceptName String
+  currency    String    @default("USD")
   amountUsd   Float
   paidUsd     Float     @default(0)
   dueDate     DateTime
@@ -88,6 +97,7 @@ model Payment {
   studentFee    StudentFee @relation(fields: [studentFeeId], references: [id], onDelete: Cascade)
   paymentDate   DateTime   @default(now())
   method        String
+  currency      String     @default("USD")
   reference     String?
   amountUsd     Float
   amountVes     Float

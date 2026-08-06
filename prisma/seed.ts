@@ -5,7 +5,6 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Limpiando base de datos y configurando entorno de producción real para U.E. Ramón Pierluissi Ramírez...');
 
-  // Eliminar datos antiguos para dejar el sistema 100% limpio sin datos falsos
   await prisma.payment.deleteMany();
   await prisma.studentFee.deleteMany();
   await prisma.student.deleteMany();
@@ -13,7 +12,6 @@ async function main() {
   await prisma.grade.deleteMany();
   await prisma.bcvRate.deleteMany();
 
-  // Configuración Oficial Real de la Institución
   await prisma.schoolConfig.upsert({
     where: { id: 'default' },
     update: {
@@ -21,12 +19,12 @@ async function main() {
       rif: 'J-31489201-4',
       phone: '+58 414-7890123',
       email: 'admonpierluissi@gmail.com',
-      address: 'Av. Principal de Prebo II, Edif. Pierluissi. Valencia, Estado Carabobo, Venezuela.',
-      bankDetails: `DATOS OFICIALES PARA RECEPCIÓN DE PAGOS:
-• Pago Móvil: Banesco (0134) - C.I / RIF: J-31489201-4 - Teléfono: 0414-7890123
-• Transferencia Bolívares: Banesco Cta. Corriente #0134-0100-52-1000123456 (U.E. Ramón Pierluissi Ramírez)
-• Zelle: admonpierluissi@gmail.com (Titular: Pierluissi Education Corp)
-• Recepción de Caja: Sede Prebo II, Valencia`,
+      address: 'Prebo II, Valencia, Carabobo',
+      pagoMovilBank: 'Banesco (0134)',
+      pagoMovilPhone: '0414-7890123',
+      pagoMovilRif: 'J-31489201-4',
+      zelleEmail: 'pagos@colegioramonpierluissi.com',
+      zelleName: 'Colegio Ramón Pierluissi C.A.',
     },
     create: {
       id: 'default',
@@ -34,35 +32,37 @@ async function main() {
       rif: 'J-31489201-4',
       phone: '+58 414-7890123',
       email: 'admonpierluissi@gmail.com',
-      address: 'Av. Principal de Prebo II, Edif. Pierluissi. Valencia, Estado Carabobo, Venezuela.',
-      bankDetails: `DATOS OFICIALES PARA RECEPCIÓN DE PAGOS:
-• Pago Móvil: Banesco (0134) - C.I / RIF: J-31489201-4 - Teléfono: 0414-7890123
-• Transferencia Bolívares: Banesco Cta. Corriente #0134-0100-52-1000123456 (U.E. Ramón Pierluissi Ramírez)
-• Zelle: admonpierluissi@gmail.com (Titular: Pierluissi Education Corp)
-• Recepción de Caja: Sede Prebo II, Valencia`,
+      address: 'Prebo II, Valencia, Carabobo',
+      pagoMovilBank: 'Banesco (0134)',
+      pagoMovilPhone: '0414-7890123',
+      pagoMovilRif: 'J-31489201-4',
+      zelleEmail: 'pagos@colegioramonpierluissi.com',
+      zelleName: 'Colegio Ramón Pierluissi C.A.',
     },
   });
 
-  // Tasa BCV inicial oficial obtenida automáticamente
-  let initialBcvRate = 105.8;
+  let initialUsdRate = 75.51;
+  let initialEurRate = 81.20;
   try {
-    const res = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
-    const json = await res.json();
-    if (json.promedio) {
-      initialBcvRate = parseFloat(json.promedio);
-      console.log(`Tasa BCV obtenida automáticamente de DolarApi: ${initialBcvRate} Bs./USD`);
-    }
+    const [usdRes, eurRes] = await Promise.all([
+      fetch('https://ve.dolarapi.com/v1/dolares/oficial'),
+      fetch('https://ve.dolarapi.com/v1/euros/oficial'),
+    ]);
+    const usdJson = await usdRes.json();
+    const eurJson = await eurRes.json();
+    if (usdJson.promedio) initialUsdRate = parseFloat(usdJson.promedio);
+    if (eurJson.promedio) initialEurRate = parseFloat(eurJson.promedio);
   } catch (e) {
-    console.log('No se pudo conectar a la API BCV durante el seed, usando tasa base.');
+    console.log('Uso de tasas base de respaldo.');
   }
 
   await prisma.bcvRate.create({
     data: {
-      rate: initialBcvRate,
+      rate: initialUsdRate,
+      eurRate: initialEurRate,
     },
   });
 
-  // Estructura Real de Niveles Académicos y Grados del Colegio
   await prisma.grade.createMany({
     data: [
       { name: 'Maternal y Preescolar', section: 'A', monthlyFeeUsd: 45.0 },
@@ -80,7 +80,7 @@ async function main() {
     ],
   });
 
-  console.log('✅ Base de datos limpiada correctamente. 0 datos falsos. Lista para producción.');
+  console.log('✅ Base de datos configurada para producción real con soporte dual USD/EUR.');
 }
 
 main()

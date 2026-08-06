@@ -11,6 +11,7 @@ import {
   FileSpreadsheet, 
   Settings, 
   DollarSign, 
+  Euro,
   RefreshCw, 
   Award,
   Zap,
@@ -22,20 +23,21 @@ import {
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [bcvRate, setBcvRate] = useState<number | null>(null);
+  const [bcvUsd, setBcvUsd] = useState<number | null>(null);
+  const [bcvEur, setBcvEur] = useState<number | null>(null);
   const [loadingRate, setLoadingRate] = useState(false);
   const [showModalRate, setShowModalRate] = useState(false);
-  const [newRateInput, setNewRateInput] = useState('');
-  const [rateSource, setRateSource] = useState<string>('');
+  const [newUsdInput, setNewUsdInput] = useState('');
+  const [newEurInput, setNewEurInput] = useState('');
 
   const fetchBcv = async () => {
     setLoadingRate(true);
     try {
       const res = await fetch('/api/bcv');
       const data = await res.json();
-      if (data.rate) {
-        setBcvRate(data.rate);
-        setRateSource(data.source || '');
+      if (data.usdRate || data.rate) {
+        setBcvUsd(data.usdRate || data.rate);
+        setBcvEur(data.eurRate || (data.rate * 1.08));
       }
     } catch (e) {
       console.error(e);
@@ -57,9 +59,9 @@ export default function Navbar() {
         body: JSON.stringify({ auto: true }),
       });
       const data = await res.json();
-      if (data.rate) {
-        setBcvRate(data.rate);
-        setRateSource(data.source || '');
+      if (data.usdRate || data.rate) {
+        setBcvUsd(data.usdRate || data.rate);
+        setBcvEur(data.eurRate || (data.rate * 1.08));
         setShowModalRate(false);
       } else {
         alert('No se pudo actualizar la tasa automáticamente.');
@@ -73,19 +75,20 @@ export default function Navbar() {
 
   const handleUpdateRateManual = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newRateInput) return;
+    if (!newUsdInput) return;
     try {
       const res = await fetch('/api/bcv', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rate: newRateInput }),
+        body: JSON.stringify({ rate: newUsdInput, eurRate: newEurInput }),
       });
       const data = await res.json();
-      if (data.rate) {
-        setBcvRate(data.rate);
-        setRateSource('MANUAL');
+      if (data.usdRate || data.rate) {
+        setBcvUsd(data.usdRate || data.rate);
+        setBcvEur(data.eurRate || (data.rate * 1.08));
         setShowModalRate(false);
-        setNewRateInput('');
+        setNewUsdInput('');
+        setNewEurInput('');
       }
     } catch (e) {
       console.error(e);
@@ -147,19 +150,36 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Tasa BCV Badge & Accesos en Header */}
-          <div className="flex items-center space-x-3">
-            <div className="bg-slate-900/90 border border-emerald-600/40 rounded-2xl px-3.5 py-1.5 flex items-center space-x-2 shadow-lg shadow-emerald-900/20">
-              <div className="flex items-center text-xs font-black text-amber-400 tracking-wider">
-                <DollarSign className="w-3.5 h-3.5 mr-0.5 text-amber-400" />
-                TASA BCV:
+          {/* Tasa BCV Dual (USD & EUR) Badges */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="bg-slate-900/90 border border-emerald-600/40 rounded-2xl px-3 py-1.5 flex items-center space-x-3 shadow-lg shadow-emerald-900/20">
+              {/* USD */}
+              <div className="flex items-center space-x-1 text-xs">
+                <span className="font-black text-amber-400 flex items-center">
+                  <DollarSign className="w-3.5 h-3.5 mr-0.5 text-amber-400" />
+                  USD:
+                </span>
+                <span className="font-extrabold text-emerald-400 text-xs sm:text-sm">
+                  {bcvUsd !== null ? `${bcvUsd.toFixed(2)}` : '...'}
+                </span>
               </div>
-              <span className="font-extrabold text-xs sm:text-sm text-gradient-emerald">
-                {bcvRate !== null ? `${bcvRate.toFixed(2)} Bs./$` : '...'}
-              </span>
+
+              <div className="h-4 w-px bg-slate-800"></div>
+
+              {/* EUR */}
+              <div className="flex items-center space-x-1 text-xs">
+                <span className="font-black text-blue-400 flex items-center">
+                  <Euro className="w-3.5 h-3.5 mr-0.5 text-blue-400" />
+                  EUR:
+                </span>
+                <span className="font-extrabold text-blue-300 text-xs sm:text-sm">
+                  {bcvEur !== null ? `${bcvEur.toFixed(2)}` : '...'}
+                </span>
+              </div>
+
               <button
                 onClick={handleSyncAutoBcv}
-                title="Sincronizar Tasa BCV"
+                title="Sincronizar automáticamente Tasa Oficial BCV (USD/EUR)"
                 className="p-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-lg text-white transition-all shadow-md flex items-center hover:scale-105"
               >
                 <RefreshCw className={`w-3 h-3 ${loadingRate ? 'animate-spin' : ''}`} />
@@ -231,22 +251,23 @@ export default function Navbar() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-lg font-extrabold text-white flex items-center space-x-2">
                 <DollarSign className="w-5 h-5 text-emerald-400" />
-                <span>Tasa Oficial BCV</span>
+                <span>Tasas Oficiales BCV (USD & EUR)</span>
               </h3>
               <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-bold">
                 Banco Central
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              La tasa oficial se obtiene automáticamente del Banco Central de Venezuela o puede ajustarse manualmente.
+              Las tasas oficiales se obtienen automáticamente del Banco Central de Venezuela (Dólares y Euros) o pueden ajustarse manualmente.
             </p>
 
             <div className="p-4 bg-emerald-950/80 border border-emerald-800/80 rounded-2xl flex items-center justify-between shadow-inner">
-              <div>
+              <div className="space-y-1">
                 <span className="text-xs text-slate-400 block font-medium">Sincronización BCV en Vivo:</span>
-                <span className="text-base font-extrabold text-emerald-400">
-                  {bcvRate ? `${bcvRate.toFixed(2)} Bs./USD` : 'Buscando...'}
-                </span>
+                <div className="text-sm font-extrabold text-emerald-400 flex items-center space-x-3">
+                  <span>USD: {bcvUsd ? `${bcvUsd.toFixed(2)} Bs.` : '...'}</span>
+                  <span className="text-blue-400">EUR: {bcvEur ? `${bcvEur.toFixed(2)} Bs.` : '...'}</span>
+                </div>
               </div>
               <button
                 onClick={handleSyncAutoBcv}
@@ -254,22 +275,35 @@ export default function Navbar() {
                 className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold px-4 py-2 rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center space-x-1.5"
               >
                 <Zap className="w-3.5 h-3.5 text-amber-300" />
-                <span>Obtener de BCV</span>
+                <span>Obtener BCV</span>
               </button>
             </div>
 
             <form onSubmit={handleUpdateRateManual} className="space-y-4 pt-2 border-t border-slate-800">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Ajuste Manual de Tasa (VES por 1 USD)
+                  Ajuste Manual Tasa USD (VES por 1 USD)
                 </label>
                 <input
                   type="number"
                   step="0.01"
                   required
-                  value={newRateInput}
-                  onChange={(e) => setNewRateInput(e.target.value)}
-                  placeholder="Ej: 755.15"
+                  value={newUsdInput}
+                  onChange={(e) => setNewUsdInput(e.target.value)}
+                  placeholder="Ej: 75.51"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Ajuste Manual Tasa EUR (VES por 1 EUR)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={newEurInput}
+                  onChange={(e) => setNewEurInput(e.target.value)}
+                  placeholder="Ej: 81.20"
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
@@ -285,7 +319,7 @@ export default function Navbar() {
                   type="submit"
                   className="px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-600/30 transition-colors"
                 >
-                  Guardar Tasa Manual
+                  Guardar Tasas
                 </button>
               </div>
             </form>

@@ -1,53 +1,72 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-async function fetchLiveBcvFromApi(): Promise<number | null> {
+async function fetchLiveBcvRates(): Promise<{ usd: number | null; eur: number | null }> {
+  let usd: number | null = null;
+  let eur: number | null = null;
+
   try {
-    const response = await fetch('https://ve.dolarapi.com/v1/dolares/oficial', {
-      cache: 'no-store',
-    });
-    if (!response.ok) return null;
-    const data = await response.json();
-    if (data && typeof data.promedio === 'number' && data.promedio > 0) {
-      return data.promedio;
+    const [usdRes, eurRes] = await Promise.all([
+      fetch('https://ve.dolarapi.com/v1/dolares/oficial', { cache: 'no-store' }),
+      fetch('https://ve.dolarapi.com/v1/euros/oficial', { cache: 'no-store' }),
+    ]);
+
+    if (usdRes.ok) {
+      const usdData = await usdRes.json();
+      if (usdData && typeof usdData.promedio === 'number' && usdData.promedio > 0) {
+        usd = usdData.promedio;
+      }
+    }
+
+    if (eurRes.ok) {
+      const eurData = await eurRes.json();
+      if (eurData && typeof eurData.promedio === 'number' && eurData.promedio > 0) {
+        eur = eurData.promedio;
+      }
     }
   } catch (error) {
-    console.error('Error al consultar API BCV automática:', error);
+    console.error('Error al consultar API BCV en vivo (USD/EUR):', error);
   }
-  return null;
+
+  return { usd, eur };
 }
 
 export async function GET() {
   try {
-    // 1. Intentar consultar la Tasa BCV Oficial en vivo automáticamente
-    const liveRate = await fetchLiveBcvFromApi();
+    const liveRates = await fetchLiveBcvRates();
 
-    if (liveRate !== null) {
-      // Guardar en BD si cambió respecto a la última registrada
+    if (liveRates.usd !== null && liveRates.eur !== null) {
       const latestDbRate = await prisma.bcvRate.findFirst({
         orderBy: { createdAt: 'desc' },
       });
 
-      if (!latestDbRate || Math.abs(latestDbRate.rate - liveRate) > 0.001) {
+      if (!latestDbRate || Math.abs(latestDbRate.rate - liveRates.usd) > 0.001 || Math.abs(latestDbRate.eurRate - liveRates.eur) > 0.001) {
         await prisma.bcvRate.create({
-          data: { rate: liveRate },
+          data: {
+            rate: liveRates.usd,
+            eurRate: liveRates.eur,
+          },
         });
       }
 
       return NextResponse.json({
-        rate: liveRate,
+        rate: liveRates.usd,
+        usdRate: liveRates.usd,
+        eurRate: liveRates.eur,
         date: new Date(),
         source: 'BCV_AUTOMATIC_LIVE',
       });
     }
 
-    // 2. Si falla la red, consultar la última registrada en BD
+    // Fallback a Base de Datos
     const dbRate = await prisma.bcvRate.findFirst({
       orderBy: { createdAt: 'desc' },
     });
 
     return NextResponse.json({
-      rate: dbRate?.rate ?? 105.8,
+      rate: dbRate?.rate ?? 75.51,
+      usdRate: dbRate?.rate ?? 75.51,
+      eurRate: dbRate?.eurRate ?? 81.20,
       date: dbRate?.date ?? new Date(),
       source: 'DATABASE_FALLBACK',
     });
@@ -60,34 +79,44 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Sincronización automática a demanda
     if (body.auto) {
-      const liveRate = await fetchLiveBcvFromApi();
-      if (liveRate !== null) {
+      const liveRates = await fetchLiveBcvRates();
+      if (liveRates.usd !== null && liveRates.eur !== null) {
         const newRate = await prisma.bcvRate.create({
-          data: { rate: liveRate },
+          data: {
+            rate: liveRates.usd,
+            eurRate: liveRates.eur,
+          },
         });
         return NextResponse.json({
           rate: newRate.rate,
+          usdRate: newRate.rate,
+          eurRate: newRate.eurRate,
           date: newRate.date,
           source: 'BCV_AUTOMATIC_LIVE',
         });
       }
-      return NextResponse.json({ error: 'No se pudo obtener la tasa BCV automáticamente' }, { status: 502 });
+      return NextResponse.json({ error: 'No se pudo obtener las tasas del BCV automáticamente' }, { status: 502 });
     }
 
-    // Actualización manual
-    const rateNumber = parseFloat(body.rate);
-    if (isNaN(rateNumber) || rateNumber <= 0) {
-      return NextResponse.json({ error: 'Tasa BCV inválida' }, { status: 400 });
+    const usdNumber = parseFloat(body.rate || body.usdRate);
+    const eurNumber = parseFloat(body.eurRate || '0');
+
+    if (isNaN(usdNumber) || usdNumber <= 0) {
+      return NextResponse.json({ error: 'Tasa USD inválida' }, { status: 400 });
     }
 
     const newRate = await prisma.bcvRate.create({
-      data: { rate: rateNumber },
+      data: {
+        rate: usdNumber,
+        eurRate: eurNumber > 0 ? eurNumber : usdNumber * 1.08,
+      },
     });
 
     return NextResponse.json({
       rate: newRate.rate,
+      usdRate: newRate.rate,
+      eurRate: newRate.eurRate,
       date: newRate.date,
       source: 'MANUAL',
     });
