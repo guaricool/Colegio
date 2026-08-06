@@ -19,6 +19,8 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { formatUsd, formatVes, formatDate, buildWhatsappLink } from '@/lib/utils';
+import { KpiCard } from '@/components/KpiCard';
+import { FeeStatusBadge } from '@/components/FeeStatusBadge';
 
 export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
@@ -112,66 +114,36 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
+      {/* KPI Cards Grid Modular */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Recaudado */}
-        <div className="bg-slate-900/90 border border-emerald-800/40 rounded-2xl p-5 shadow-xl glass-card-hover relative overflow-hidden">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
-            <span className="text-xs font-bold tracking-wider uppercase text-slate-400">Ingresos Recaudados</span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-white">{formatUsd(summary.totalCollectedUsd)}</div>
-          <div className="text-xs font-bold text-emerald-400 mt-1">
-            Eqv: {formatVes(summary.totalCollectedVes)}
-          </div>
-        </div>
-
-        {/* Por Cobrar Total */}
-        <div className="bg-slate-900/90 border border-emerald-800/40 rounded-2xl p-5 shadow-xl glass-card-hover relative overflow-hidden">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
-            <span className="text-xs font-bold tracking-wider uppercase text-slate-400">Cuentas por Cobrar</span>
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-amber-400">{formatUsd(summary.totalPendingUsd)}</div>
-          <div className="text-xs font-semibold text-slate-400 mt-1">
-            Eqv: {formatVes(summary.totalPendingVes)}
-          </div>
-        </div>
-
-        {/* Morosidad Vencida */}
-        <div className="bg-slate-900/90 border border-emerald-800/40 rounded-2xl p-5 shadow-xl glass-card-hover relative overflow-hidden">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
-            <span className="text-xs font-bold tracking-wider uppercase text-slate-400">Deuda Vencida</span>
-            <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-rose-400">{formatUsd(summary.totalOverdueUsd)}</div>
-          <div className="text-xs font-semibold text-slate-400 mt-1">
-            Eqv: {formatVes(summary.totalOverdueVes)}
-          </div>
-        </div>
-
-        {/* Eficiencia Recaudación */}
-        <div className="bg-slate-900/90 border border-emerald-800/40 rounded-2xl p-5 shadow-xl glass-card-hover relative overflow-hidden">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
-            <span className="text-xs font-bold tracking-wider uppercase text-slate-400">Eficiencia Cobros</span>
-            <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-gradient-emerald">{summary.collectionEfficiencyPercent}%</div>
-          <div className="w-full bg-slate-800 h-2 rounded-full mt-2.5 overflow-hidden p-0.5 border border-slate-700">
-            <div
-              className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, summary.collectionEfficiencyPercent)}%` }}
-            ></div>
-          </div>
-        </div>
+        <KpiCard
+          title="Ingresos Recaudados"
+          usdAmount={summary.totalCollectedUsd}
+          vesAmount={summary.totalCollectedVes}
+          icon={TrendingUp}
+          colorScheme="emerald"
+        />
+        <KpiCard
+          title="Cuentas por Cobrar"
+          usdAmount={summary.totalPendingUsd}
+          vesAmount={summary.totalPendingVes}
+          icon={Clock}
+          colorScheme="amber"
+        />
+        <KpiCard
+          title="Deuda Vencida"
+          usdAmount={summary.totalOverdueUsd}
+          vesAmount={summary.totalOverdueVes}
+          icon={AlertTriangle}
+          colorScheme="rose"
+        />
+        <KpiCard
+          title="Eficiencia Cobros"
+          usdAmount={0}
+          icon={ShieldCheck}
+          colorScheme="blue"
+          progressPercent={summary.collectionEfficiencyPercent}
+        />
       </div>
 
       {/* Recaudación por Método de Pago & Matrícula */}
@@ -266,12 +238,12 @@ export default function DashboardPage() {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-950 text-slate-400 font-semibold uppercase tracking-wider">
               <tr>
-                <th className="px-4 py-3.5 rounded-l-xl">Estudiante</th>
-                <th className="px-4 py-3.5">Concepto</th>
-                <th className="px-4 py-3.5">Monto ($)</th>
-                <th className="px-4 py-3.5">Vencimiento</th>
-                <th className="px-4 py-3.5">Estado</th>
-                <th className="px-4 py-3.5 rounded-r-xl text-right">Acción</th>
+                <th className="px-4 py-3 rounded-l-xl">Estudiante</th>
+                <th className="px-4 py-3">Concepto</th>
+                <th className="px-4 py-3">Monto ($)</th>
+                <th className="px-4 py-3">Vencimiento</th>
+                <th className="px-4 py-3">Estado</th>
+                <th className="px-4 py-3 rounded-r-xl text-right">Acción</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -283,10 +255,7 @@ export default function DashboardPage() {
                 </tr>
               ) : (
                 recentFees.map((fee: any) => {
-                  const isOverdue = fee.status === 'OVERDUE';
                   const isPaid = fee.status === 'PAID';
-                  const isPartial = fee.status === 'PARTIAL';
-
                   const repPhone = fee.student?.representative?.phone || '';
                   const waMessage = `Estimado(a) *${fee.student?.representative?.name}*, le saludamos de la Administración de la *U.E. Ramón Pierluissi Ramírez*. Le recordamos que la mensualidad (${fee.conceptName}) de ${fee.student?.firstName} ${fee.student?.lastName} presenta un saldo pendiente de ${formatUsd(fee.amountUsd - fee.paidUsd)} (Eqv. ${formatVes((fee.amountUsd - fee.paidUsd) * bcvRate)} a Tasa BCV ${bcvRate.toFixed(2)}). Agradecemos reportar su pago vía Pago Móvil o Zelle. ¡Muchas gracias!`;
 
@@ -300,26 +269,7 @@ export default function DashboardPage() {
                       <td className="px-4 py-3.5 font-extrabold text-white">{formatUsd(fee.amountUsd)}</td>
                       <td className="px-4 py-3.5 text-slate-400">{formatDate(fee.dueDate)}</td>
                       <td className="px-4 py-3.5">
-                        {isPaid && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            PAGADO
-                          </span>
-                        )}
-                        {isOverdue && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                            VENCIDO
-                          </span>
-                        )}
-                        {isPartial && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                            ABONADO
-                          </span>
-                        )}
-                        {!isPaid && !isOverdue && !isPartial && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                            PENDIENTE
-                          </span>
-                        )}
+                        <FeeStatusBadge status={fee.status} />
                       </td>
                       <td className="px-4 py-3.5 text-right space-x-2">
                         {!isPaid && repPhone && (
