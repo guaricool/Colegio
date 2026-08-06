@@ -10,7 +10,9 @@ import {
   Percent, 
   Check, 
   X,
-  BookOpen
+  BookOpen,
+  Inbox,
+  Sparkles
 } from 'lucide-react';
 import { formatUsd } from '@/lib/utils';
 
@@ -131,29 +133,29 @@ export default function EstudiantesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-emerald-950/50 via-slate-900 to-indigo-950/40 p-6 rounded-3xl border border-emerald-800/30 shadow-2xl">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center space-x-2">
-            <GraduationCap className="w-7 h-7 text-indigo-400" />
-            <span>Estudiantes y Representantes</span>
+          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center space-x-2.5">
+            <GraduationCap className="w-7 h-7 text-emerald-400" />
+            <span>Estudiantes & Representantes</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Gestión de la matrícula escolar, asignación de becas y generación masiva de mensualidades
+          <p className="text-xs text-slate-300 mt-1">
+            Matrícula escolar oficial, control de becas y facturación masiva para la U.E. Ramón Pierluissi Ramírez
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2.5">
           <button
             onClick={() => setShowRepModal(true)}
-            className="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
+            className="flex items-center space-x-2 bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-2xl transition-all hover:scale-105"
           >
-            <UserPlus className="w-4 h-4 text-indigo-400" />
+            <UserPlus className="w-4 h-4 text-emerald-400" />
             <span>Nuevo Representante</span>
           </button>
 
           <button
             onClick={() => setShowMassiveFeeModal(true)}
-            className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-indigo-600/30 transition-all"
+            className="flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold px-5 py-2.5 rounded-2xl shadow-lg shadow-emerald-600/30 transition-all hover:scale-105"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Generar Mensualidad Masiva</span>
@@ -162,24 +164,24 @@ export default function EstudiantesPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
-        <div className="relative w-full max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
+        <div className="relative w-full sm:w-96">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
           <input
             type="text"
             placeholder="Buscar estudiante o representante por nombre..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
           />
         </div>
-        <div className="text-xs text-slate-400 font-medium">
-          Total Alumnos: <span className="text-white font-bold">{students.length}</span>
+        <div className="text-xs text-slate-300 font-semibold bg-slate-950/80 px-3.5 py-2 rounded-xl border border-slate-800">
+          Matrícula Registrada: <strong className="text-emerald-400 font-extrabold">{students.length} alumnos</strong>
         </div>
       </div>
 
       {/* Table Estudiantes */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-950 text-slate-400 font-semibold uppercase tracking-wider">
@@ -195,45 +197,55 @@ export default function EstudiantesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {filteredStudents.map((st) => {
-                const baseUsd = st.grade?.monthlyFeeUsd || 0;
-                const discount = (baseUsd * st.scholarshipPercent) / 100;
-                const finalUsd = baseUsd - discount;
+              {filteredStudents.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-12 text-center text-slate-500 space-y-2">
+                    <Inbox className="w-10 h-10 mx-auto text-slate-600 opacity-60" />
+                    <div className="font-semibold text-slate-400">No hay alumnos ni representantes registrados en este momento</div>
+                    <div className="text-[11px] text-slate-500">Utiliza el botón &quot;Nuevo Representante&quot; para registrar la matrícula real.</div>
+                  </td>
+                </tr>
+              ) : (
+                filteredStudents.map((st) => {
+                  const baseUsd = st.grade?.monthlyFeeUsd || 0;
+                  const discount = (baseUsd * st.scholarshipPercent) / 100;
+                  const finalUsd = baseUsd - discount;
 
-                return (
-                  <tr key={st.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="px-4 py-3.5 font-bold text-white">
-                      {st.firstName} {st.lastName}
-                    </td>
-                    <td className="px-4 py-3.5 text-slate-400 font-mono">{st.cedula}</td>
-                    <td className="px-4 py-3.5 text-indigo-300 font-semibold">
-                      {st.grade?.name} ({st.grade?.section})
-                    </td>
-                    <td className="px-4 py-3.5 font-semibold text-slate-200">{formatUsd(baseUsd)}</td>
-                    <td className="px-4 py-3.5">
-                      {st.scholarshipPercent > 0 ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                          {st.scholarshipPercent}% Beca ({formatUsd(finalUsd)})
+                  return (
+                    <tr key={st.id} className="table-row-hover">
+                      <td className="px-4 py-3.5 font-extrabold text-white">
+                        {st.firstName} {st.lastName}
+                      </td>
+                      <td className="px-4 py-3.5 text-slate-400 font-mono font-medium">{st.cedula}</td>
+                      <td className="px-4 py-3.5 text-emerald-400 font-extrabold">
+                        {st.grade?.name} ({st.grade?.section})
+                      </td>
+                      <td className="px-4 py-3.5 font-bold text-slate-200">{formatUsd(baseUsd)}</td>
+                      <td className="px-4 py-3.5">
+                        {st.scholarshipPercent > 0 ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                            {st.scholarshipPercent}% Beca ({formatUsd(finalUsd)})
+                          </span>
+                        ) : (
+                          <span className="text-slate-500 font-medium">Sin Beca</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3.5 font-semibold text-slate-300">
+                        <div>{st.representative?.name}</div>
+                        <div className="text-[10px] text-slate-500 font-mono">{st.representative?.cedula}</div>
+                      </td>
+                      <td className="px-4 py-3.5 text-emerald-400 font-mono font-bold">
+                        {st.representative?.phone}
+                      </td>
+                      <td className="px-4 py-3.5 text-right">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          ACTIVO
                         </span>
-                      ) : (
-                        <span className="text-slate-500">Sin Beca</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3.5 font-medium text-slate-300">
-                      <div>{st.representative?.name}</div>
-                      <div className="text-[10px] text-slate-500">{st.representative?.cedula}</div>
-                    </td>
-                    <td className="px-4 py-3.5 text-emerald-400 font-mono font-medium">
-                      {st.representative?.phone}
-                    </td>
-                    <td className="px-4 py-3.5 text-right">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        ACTIVO
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -241,15 +253,18 @@ export default function EstudiantesPage() {
 
       {/* Modal Nuevo Representante */}
       {showRepModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl text-white">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl text-white space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-800">
-              <h3 className="text-lg font-bold text-slate-100">Registrar Representante</h3>
-              <button onClick={() => setShowRepModal(false)} className="text-slate-400 hover:text-white">
+              <h3 className="text-lg font-extrabold text-white flex items-center space-x-2">
+                <UserPlus className="w-5 h-5 text-emerald-400" />
+                <span>Registrar Representante</span>
+              </h3>
+              <button onClick={() => setShowRepModal(false)} className="text-slate-400 hover:text-white p-1 rounded-xl hover:bg-slate-800">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleCreateRep} className="space-y-4 pt-4">
+            <form onSubmit={handleCreateRep} className="space-y-4 pt-1">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Nombre Completo
@@ -260,7 +275,7 @@ export default function EstudiantesPage() {
                   placeholder="Ej: Carmen Rodríguez"
                   value={repName}
                   onChange={(e) => setRepName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div>
@@ -273,7 +288,7 @@ export default function EstudiantesPage() {
                   placeholder="Ej: V-15.420.198"
                   value={repCedula}
                   onChange={(e) => setRepCedula(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div>
@@ -286,7 +301,7 @@ export default function EstudiantesPage() {
                   placeholder="Ej: +584141234567"
                   value={repPhone}
                   onChange={(e) => setRepPhone(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div>
@@ -298,20 +313,20 @@ export default function EstudiantesPage() {
                   placeholder="ejemplo@email.com"
                   value={repEmail}
                   onChange={(e) => setRepEmail(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-3">
                 <button
                   type="button"
                   onClick={() => setShowRepModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
+                  className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-600/30"
+                  className="px-5 py-2.5 text-xs font-extrabold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl shadow-lg shadow-emerald-600/30"
                 >
                   Guardar Representante
                 </button>
@@ -323,18 +338,21 @@ export default function EstudiantesPage() {
 
       {/* Modal Mensualidad Masiva */}
       {showMassiveFeeModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl text-white">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl text-white space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-800">
-              <h3 className="text-lg font-bold text-slate-100">Generar Mensualidad Masiva</h3>
-              <button onClick={() => setShowMassiveFeeModal(false)} className="text-slate-400 hover:text-white">
+              <h3 className="text-lg font-extrabold text-white flex items-center space-x-2">
+                <Sparkles className="w-5 h-5 text-amber-400" />
+                <span>Generar Mensualidad Masiva</span>
+              </h3>
+              <button onClick={() => setShowMassiveFeeModal(false)} className="text-slate-400 hover:text-white p-1 rounded-xl hover:bg-slate-800">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-xs text-slate-400 mt-2">
+            <p className="text-xs text-slate-400">
               Se creará el cargo de cobro para todos los estudiantes activos aplicando las becas correspondientes.
             </p>
-            <form onSubmit={handleGenerateMassiveFees} className="space-y-4 pt-4">
+            <form onSubmit={handleGenerateMassiveFees} className="space-y-4 pt-1">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Nombre del Concepto
@@ -345,7 +363,7 @@ export default function EstudiantesPage() {
                   placeholder="Ej: Mensualidad Noviembre 2026"
                   value={feeConceptName}
                   onChange={(e) => setFeeConceptName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div>
@@ -357,20 +375,20 @@ export default function EstudiantesPage() {
                   required
                   value={feeDueDate}
                   onChange={(e) => setFeeDueDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-3">
                 <button
                   type="button"
                   onClick={() => setShowMassiveFeeModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
+                  className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-600/30"
+                  className="px-5 py-2.5 text-xs font-extrabold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl shadow-lg shadow-emerald-600/30"
                 >
                   Generar Cargos Masivos
                 </button>

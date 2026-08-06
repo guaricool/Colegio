@@ -44,21 +44,28 @@ body {
   background: #64C1B1;
 }
 
-/* Premium Glassmorphism */
+/* UI/UX Pro Max Glassmorphism & Card Elevation */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(20px) saturate(190%);
-  -webkit-backdrop-filter: blur(20px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(100, 193, 177, 0.18);
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5);
 }
 
 .glass-card-hover {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .glass-card-hover:hover {
-  transform: translateY(-3px);
-  border-color: rgba(100, 193, 177, 0.4);
-  box-shadow: 0 20px 40px -15px rgba(0, 255, 136, 0.15);
+  transform: translateY(-4px);
+  border-color: rgba(0, 255, 136, 0.4);
+  box-shadow: 0 20px 40px -10px rgba(0, 255, 136, 0.18), 0 0 20px 0 rgba(100, 193, 177, 0.1);
+}
+
+/* Focus Ring UX */
+input:focus, select:focus, textarea:focus {
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.25);
+  border-color: #00FF88 !important;
 }
 
 /* Gradient Text Utilities */
@@ -84,12 +91,20 @@ body {
 }
 
 /* Ambient Glow Effects */
-.glow-emerald {
-  box-shadow: 0 0 50px -10px rgba(0, 255, 136, 0.25);
+.glow-emerald-lg {
+  box-shadow: 0 0 70px -5px rgba(0, 255, 136, 0.22);
 }
 
-.glow-gold {
-  box-shadow: 0 0 50px -10px rgba(212, 168, 67, 0.25);
+.glow-gold-lg {
+  box-shadow: 0 0 70px -5px rgba(212, 168, 67, 0.22);
+}
+
+/* Table Hover Effects */
+tr.table-row-hover {
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+tr.table-row-hover:hover {
+  background-color: rgba(22, 101, 52, 0.25);
 }
 
 /* Keyframe Animations */
