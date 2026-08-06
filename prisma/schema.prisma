@@ -7,6 +7,18 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String   @unique
+  firstName String
+  lastName  String
+  password  String
+  role      String   @default("ADMIN") // "SUPER_ADMIN" | "ADMIN" | "COBRANZA"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model BcvRate {
   id        String   @id @default(uuid())
   rate      Float

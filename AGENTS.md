@@ -1,6 +1,6 @@
 # Memoria del Proyecto - Colegio Ramón Pierluissi Ramírez
 
-Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial y Exportador para Profit Plus 2K12 (Lotes Fin de Semana).
+Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación de Usuarios (SuperAdmin, Admin, Cobranza) y Exportador para Profit Plus 2K12.
 
 ## 📌 Reglas de Flujo de Trabajo (Obligatorias)
 
@@ -23,13 +23,18 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
 
 ## 🚀 Módulos Implementados
 
+- **Autenticación Administrativa & Control de Roles (RBAC)**:
+  - **SuperAdmin**: `cpierluissis@gmail.com` con acceso total al 100% del sistema sin restricciones.
+  - **Administrador General**: Control de alumnos, recibos y reportes.
+  - **Área de Cobranza**: Usuario restringido creado desde `/configuracion` exclusivamente para cobranza presencial y registro de efectivo, Zelle, Pago Móvil y recibos (**bloqueado de `/configuracion`**).
+  - Páginas `/admin/login` y `/admin/register`.
 - **Exportador Contable Profit Plus 2K12 & Lotes Fin de Semana (`/reportes`)**: Agrupación automática de cobros recibidos el fin de semana (sábado y domingo) para ser exportados el lunes por la mañana a Profit Plus 2K12 (`saCliente` y `saCobro`) en Excel y CSV.
 - **Escáner Inteligente e IA Gemini Vision (`/api/payments/ocr`)**: Lector automático de capturas/fotos de Pago Móvil, Transferencias y Depósitos del Banco Provincial. Extrae la referencia, el monto en Bolívares y calcula el saldo a la Tasa BCV del día para auto-aprobar la transacción.
 - **Cobro Instantáneo C2P Dinero Rápido (Banco Provincial)**: Módulo de débito directo C2P (`/api/payments/c2p`) mediante Clave de Compra C2P en el Portal de Representantes y Administración sin tarjetas.
 - **Tasa BCV Doble (Dólar $ & Euro €)**: Indicador gemelo en tiempo real (`USD: 75.51` | `EUR: 81.20`) en la barra superior y soporte multimoneda para mensualidades.
 - **Verificación Automática TotalPago & Banco Provincial (BBVA)**: Módulo de integración API (`/api/payments/verify`) para validación automática de referencias de Pago Móvil y C2P Dinero Rápido del Banco Provincial.
 - **Landing Page Limpia (`/`)**: Presentación oficial de la U.E. Ramón Pierluissi Ramírez (Sede Prebo II), indicador neón en vivo de las Tasas BCV y botones de doble acceso sin menús administrativos visibles.
-- **Navegación Contextual (`Navbar.tsx`)**: Oculta opciones administrativas en la landing page y portal de padres, mostrándolas únicamente en el módulo administrativo.
+- **Navegación Contextual (`Navbar.tsx`)**: Oculta opciones administrativas en la landing page y portal de padres, mostrándolas únicamente en el módulo administrativo según el rol logueado.
 - **Dashboard Administrativo (`/dashboard`)**: KPIs de ingresos USD/EUR/VES, tasa BCV dual, gráfico de recaudación por métodos y mensualidades recientes.
 - **Cobros & Recibos (`/cobros`)**: Gestión de mensualidades pendientes, abonos, pagos con Pago Móvil/Zelle y emisión de recibos PDF al instante.
 - **Portal de Representantes (`/representante/login` & `/representante/portal`)**: Acceso para padres mediante Cédula de Identidad, estado de cuenta a Tasa BCV y reporte de Pago Móvil/Zelle sin requerir tarjetas.

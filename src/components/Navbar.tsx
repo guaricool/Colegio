@@ -18,7 +18,9 @@ import {
   Sparkles,
   Lock,
   UserCheck,
-  Home
+  Home,
+  LogOut,
+  User
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -29,6 +31,7 @@ export default function Navbar() {
   const [showModalRate, setShowModalRate] = useState(false);
   const [newUsdInput, setNewUsdInput] = useState('');
   const [newEurInput, setNewEurInput] = useState('');
+  const [adminUser, setAdminUser] = useState<any>(null);
 
   const fetchBcv = async () => {
     setLoadingRate(true);
@@ -48,7 +51,13 @@ export default function Navbar() {
 
   useEffect(() => {
     fetchBcv();
-  }, []);
+    const sessionStr = localStorage.getItem('pierluissi_admin_session');
+    if (sessionStr) {
+      try {
+        setAdminUser(JSON.parse(sessionStr));
+      } catch (e) {}
+    }
+  }, [pathname]);
 
   const handleSyncAutoBcv = async () => {
     setLoadingRate(true);
@@ -95,18 +104,28 @@ export default function Navbar() {
     }
   };
 
+  const handleAdminLogout = () => {
+    localStorage.removeItem('pierluissi_admin_session');
+    setAdminUser(null);
+    window.location.href = '/admin/login';
+  };
+
   const isLandingPage = pathname === '/';
   const isParentPortal = pathname.startsWith('/representante');
-  const isAdminArea = !isLandingPage && !isParentPortal;
+  const isAdminLogin = pathname.startsWith('/admin');
+  const isAdminArea = !isLandingPage && !isParentPortal && !isAdminLogin;
 
+  const userRole = adminUser?.role || 'ADMIN';
+
+  // Si el usuario es COBRANZA, ocultar la pestaña de Configuración
   const adminNavItems = [
-    { label: 'Dashboard Admin', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Cobros y Recibos', href: '/cobros', icon: CreditCard },
-    { label: 'Estudiantes', href: '/estudiantes', icon: GraduationCap },
-    { label: 'Recordatorios WhatsApp', href: '/whatsapp', icon: MessageSquare },
-    { label: 'Reportes Contables', href: '/reportes', icon: FileSpreadsheet },
-    { label: 'Configuración', href: '/configuracion', icon: Settings },
-  ];
+    { label: 'Dashboard Admin', href: '/dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN'] },
+    { label: 'Cobros y Recibos', href: '/cobros', icon: CreditCard, roles: ['SUPER_ADMIN', 'ADMIN', 'COBRANZA'] },
+    { label: 'Estudiantes', href: '/estudiantes', icon: GraduationCap, roles: ['SUPER_ADMIN', 'ADMIN', 'COBRANZA'] },
+    { label: 'Recordatorios WhatsApp', href: '/whatsapp', icon: MessageSquare, roles: ['SUPER_ADMIN', 'ADMIN'] },
+    { label: 'Reportes Contables', href: '/reportes', icon: FileSpreadsheet, roles: ['SUPER_ADMIN', 'ADMIN'] },
+    { label: 'Configuración', href: '/configuracion', icon: Settings, roles: ['SUPER_ADMIN', 'ADMIN'] },
+  ].filter(item => item.roles.includes(userRole));
 
   return (
     <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-emerald-800/30 text-white shadow-2xl">
@@ -145,12 +164,12 @@ export default function Navbar() {
                 U.E. Ramón Pierluissi Ramírez
               </span>
               <span className="text-[11px] text-emerald-400 font-semibold tracking-wide block">
-                {isAdminArea ? 'Panel de Gestión Administrativa' : isParentPortal ? 'Portal de Representantes' : 'Plataforma Institucional'}
+                {isAdminArea ? `Panel de Gestión (${userRole === 'COBRANZA' ? 'Área de Cobranza' : 'Administración'})` : isParentPortal ? 'Portal de Representantes' : 'Plataforma Institucional'}
               </span>
             </div>
           </Link>
 
-          {/* Tasa BCV Dual (USD & EUR) Badges */}
+          {/* Tasa BCV Dual (USD & EUR) Badges & Usuario Logueado */}
           <div className="flex items-center space-x-2 sm:space-x-3">
             <div className="bg-slate-900/90 border border-emerald-600/40 rounded-2xl px-3 py-1.5 flex items-center space-x-3 shadow-lg shadow-emerald-900/20">
               {/* USD */}
@@ -186,6 +205,24 @@ export default function Navbar() {
               </button>
             </div>
 
+            {/* Badge de Usuario Logueado */}
+            {adminUser && isAdminArea && (
+              <div className="hidden lg:flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-2xl text-xs">
+                <User className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="font-bold text-white">{adminUser.firstName}</span>
+                <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded-full text-slate-300 font-extrabold">
+                  {adminUser.role === 'SUPER_ADMIN' ? 'SUPER ADMIN 100%' : adminUser.role}
+                </span>
+                <button
+                  onClick={handleAdminLogout}
+                  title="Cerrar Sesión Administrativa"
+                  className="text-rose-400 hover:text-rose-300 p-0.5"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
             {/* Acceso directo si se está en la Landing Page */}
             {isLandingPage && (
               <div className="flex items-center space-x-2">
@@ -197,11 +234,11 @@ export default function Navbar() {
                   <span>Portal Padres</span>
                 </Link>
                 <Link
-                  href="/dashboard"
+                  href="/admin/login"
                   className="flex items-center space-x-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs font-extrabold px-3.5 py-2 rounded-xl transition-all"
                 >
                   <Lock className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Admin</span>
+                  <span>Admin Login</span>
                 </Link>
               </div>
             )}
