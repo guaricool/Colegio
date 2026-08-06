@@ -1,9 +1,31 @@
-<!-- BEGIN:nextjs-agent-rules -->
+# Memoria del Proyecto - Colegio Ramón Pierluissi Ramírez
 
-# This is NOT the Next.js you know
+Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Portal de Representantes (Pago Sin Tarjeta) y Reportes Contables adaptados a Venezuela.
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+## 📌 Reglas de Flujo de Trabajo (Obligatorias)
 
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+1. **Memoria de Proyecto**: Actualizar este archivo (`CLAUDE.md`) con cada cambio o nueva característica.
+2. **Grafo de Conocimiento (`/graphify`)**: Ejecutar `/graphify` para actualizar la estructura del grafo de conocimiento.
+3. **Despliegue Automático VPS**: Ejecutar `git push origin main` tras cada commit para desplegar en Coolify VPS ([http://colegio.13.140.181.29.sslip.io](http://colegio.13.140.181.29.sslip.io)).
+4. **Sincronización Prisma**: Ejecutar `npx prisma db push` cuando la modificación toque `prisma/schema.prisma`.
 
-<!-- END:nextjs-agent-rules -->
+---
+
+## 🏛️ Arquitectura y Producción
+
+- **Framework**: Next.js 16 (App Router, TypeScript, Tailwind CSS)
+- **Base de Datos**: PostgreSQL (Coolify VPS `colegio-db`) & SQLite (Desarrollo local `dev.db`)
+- **VPS / Hosting**: Coolify en IP `13.140.181.29`
+- **Dominio Público**: [http://colegio.13.140.181.29.sslip.io](http://colegio.13.140.181.29.sslip.io)
+- **Repositorio GitHub**: `https://github.com/guaricool/Colegio.git` (rama `main`)
+
+---
+
+## 🚀 Módulos Implementados
+
+- **Dashboard Principal (`/`)**: KPIs de ingresos USD/VES, tasa BCV, gráfico de recaudación por métodos y mensualidades recientes.
+- **Cobros & Recibos (`/cobros`)**: Gestión de mensualidades pendientes, abonos, pagos con Pago Móvil/Zelle y emisión de recibos PDF al instante.
+- **Portal de Representantes (`/representante/login` & `/representante/portal`)**: Acceso para padres mediante Cédula de Identidad, estado de cuenta a Tasa BCV y reporte de Pago Móvil/Zelle sin requerir tarjetas.
+- **Estudiantes & Becas (`/estudiantes`)**: Registro de representantes, alumnos, grados escolares, porcentaje de beca y facturación masiva.
+- **Recordatorios WhatsApp (`/whatsapp`)**: Avisos de cobro amigables con enlace `wa.me` directo a representantes.
+- **Reportes Contables (`/reportes`)**: Auditoría de flujo de caja, morosidad por grado y exportación de libro de ingresos a Excel (`.xlsx`).
