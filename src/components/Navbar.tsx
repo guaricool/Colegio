@@ -13,7 +13,6 @@ import {
   DollarSign, 
   RefreshCw, 
   Award,
-  BookOpen,
   Zap
 } from 'lucide-react';
 
@@ -115,18 +114,21 @@ export default function Navbar() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo & Colegio Name */}
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 p-0.5 shadow-lg shadow-emerald-600/30 group-hover:scale-105 transition-all">
-              <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-emerald-400" />
-              </div>
+          {/* Logo Oficial & Nombre del Colegio */}
+          <Link href="/" className="flex items-center space-x-3 group py-1">
+            <div className="bg-white/95 backdrop-blur px-3 py-1.5 rounded-2xl shadow-md border border-emerald-500/20 group-hover:scale-105 transition-all flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.svg"
+                alt="U.E. Ramón Pierluissi Ramírez Logo"
+                className="h-8 sm:h-9 w-auto object-contain"
+              />
             </div>
-            <div>
-              <span className="font-heading font-extrabold text-lg text-white tracking-tight block leading-tight">
+            <div className="hidden sm:block">
+              <span className="font-heading font-extrabold text-base text-white tracking-tight block leading-tight">
                 U.E. Ramón Pierluissi Ramírez
               </span>
-              <span className="text-[11px] text-emerald-400 font-semibold tracking-wide">
+              <span className="text-[11px] text-emerald-400 font-semibold tracking-wide block">
                 Sistema de Cobranzas & Gestión Financiera
               </span>
             </div>

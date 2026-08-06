@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatUsd, formatVes, formatDate } from './utils';
+import { PIERLUISSI_LOGO_BASE64 } from './logoBase64';
 
 export interface PaymentReceiptData {
   receiptNumber: string;
@@ -27,34 +28,46 @@ export function generatePaymentReceiptPDF(data: PaymentReceiptData) {
 
   // Encabezado Membretado Oficial Pierluissi Verde Esmeralda (#166534)
   doc.setFillColor(22, 101, 52);
-  doc.rect(0, 0, 210, 34, 'F');
+  doc.rect(0, 0, 210, 36, 'F');
 
+  // Insertar Logo Oficial en alta resolución
+  try {
+    doc.addImage(PIERLUISSI_LOGO_BASE64, 'PNG', 12, 8, 68, 16);
+  } catch (e) {
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('U.E. RAMÓN PIERLUISSI RAMÍREZ', 14, 15);
+  }
+
+  // Texto Membrete al lado del logo
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.text('U.E. RAMÓN PIERLUISSI RAMÍREZ', 14, 15);
+  doc.setFontSize(10);
+  doc.text('U.E. RAMÓN PIERLUISSI RAMÍREZ', 90, 14);
 
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text(`RIF: ${data.schoolRif}  |  Telf: ${data.schoolPhone}  |  admonpierluissi@gmail.com`, 14, 22);
-  doc.text(`Sede Valencia: ${data.schoolAddress}`, 14, 27);
+  doc.text(`RIF: ${data.schoolRif}  |  Telf: ${data.schoolPhone}`, 90, 20);
+  doc.text(`admonpierluissi@gmail.com`, 90, 25);
+  doc.text(`Sede Prebo II, Valencia, Carabobo`, 90, 30);
 
   // Título de Recibo
   doc.setTextColor(22, 101, 52);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(15);
-  doc.text('COMPROBANTE DE PAGO DIGITAL', 14, 46);
+  doc.text('COMPROBANTE DE PAGO DIGITAL', 14, 48);
 
   doc.setTextColor(100, 116, 139);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(`N° Recibo: ${data.receiptNumber}`, 140, 46);
-  doc.text(`Fecha Emisión: ${formatDate(data.paymentDate)}`, 140, 52);
-  doc.text(`Tasa BCV Aplicada: ${data.bcvRate.toFixed(2)} Bs./USD`, 140, 58);
+  doc.text(`N° Recibo: ${data.receiptNumber}`, 140, 48);
+  doc.text(`Fecha Emisión: ${formatDate(data.paymentDate)}`, 140, 54);
+  doc.text(`Tasa BCV Aplicada: ${data.bcvRate.toFixed(2)} Bs./USD`, 140, 60);
 
   // Cuadro Datos del Representante y Estudiante
   autoTable(doc, {
-    startY: 64,
+    startY: 66,
     head: [['DATOS DEL REPRESENTANTE', 'DATOS DEL ESTUDIANTE / NIVEL']],
     body: [
       [
