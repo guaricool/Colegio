@@ -13,7 +13,8 @@ import {
   DollarSign, 
   RefreshCw, 
   Award,
-  BookOpen
+  BookOpen,
+  Zap
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -22,6 +23,7 @@ export default function Navbar() {
   const [loadingRate, setLoadingRate] = useState(false);
   const [showModalRate, setShowModalRate] = useState(false);
   const [newRateInput, setNewRateInput] = useState('');
+  const [rateSource, setRateSource] = useState<string>('');
 
   const fetchBcv = async () => {
     setLoadingRate(true);
@@ -30,6 +32,7 @@ export default function Navbar() {
       const data = await res.json();
       if (data.rate) {
         setBcvRate(data.rate);
+        setRateSource(data.source || '');
       }
     } catch (e) {
       console.error(e);
@@ -42,7 +45,30 @@ export default function Navbar() {
     fetchBcv();
   }, []);
 
-  const handleUpdateRate = async (e: React.FormEvent) => {
+  const handleSyncAutoBcv = async () => {
+    setLoadingRate(true);
+    try {
+      const res = await fetch('/api/bcv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ auto: true }),
+      });
+      const data = await res.json();
+      if (data.rate) {
+        setBcvRate(data.rate);
+        setRateSource(data.source || '');
+        setShowModalRate(false);
+      } else {
+        alert('No se pudo actualizar la tasa automáticamente.');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingRate(false);
+    }
+  };
+
+  const handleUpdateRateManual = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newRateInput) return;
     try {
@@ -54,6 +80,7 @@ export default function Navbar() {
       const data = await res.json();
       if (data.rate) {
         setBcvRate(data.rate);
+        setRateSource('MANUAL');
         setShowModalRate(false);
         setNewRateInput('');
       }
@@ -116,14 +143,12 @@ export default function Navbar() {
                 {bcvRate !== null ? `${bcvRate.toFixed(2)} Bs./$` : 'Cargando...'}
               </span>
               <button
-                onClick={() => {
-                  setNewRateInput(bcvRate ? bcvRate.toString() : '');
-                  setShowModalRate(true);
-                }}
-                title="Actualizar Tasa BCV Oficial"
-                className="p-1 hover:bg-emerald-800 rounded-lg text-emerald-300 hover:text-white transition-colors"
+                onClick={handleSyncAutoBcv}
+                title="Sincronizar automáticamente Tasa Oficial BCV del Banco Central de Venezuela"
+                className="p-1.5 bg-emerald-800/60 hover:bg-emerald-700 rounded-lg text-emerald-300 hover:text-white transition-colors flex items-center space-x-1"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loadingRate ? 'animate-spin' : ''}`} />
+                <span className="text-[10px] font-bold hidden sm:inline">Auto Sync</span>
               </button>
             </div>
           </div>
@@ -156,14 +181,32 @@ export default function Navbar() {
       {showModalRate && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-emerald-800/80 rounded-2xl p-6 w-full max-w-md shadow-2xl text-white">
-            <h3 className="text-lg font-bold text-slate-100 mb-1">Actualizar Tasa BCV Oficial</h3>
+            <h3 className="text-lg font-bold text-slate-100 mb-1">Tasa Oficial BCV (Banco Central)</h3>
             <p className="text-xs text-slate-400 mb-4">
-              Ajuste de la tasa de cambio del Banco Central de Venezuela aplicable a todos los recibos y mensualidades de la institución.
+              La tasa oficial se obtiene automáticamente del Banco Central de Venezuela o puede ajustarse manualmente.
             </p>
-            <form onSubmit={handleUpdateRate} className="space-y-4">
+
+            <div className="mb-4 p-3 bg-emerald-950/60 border border-emerald-800/80 rounded-xl flex items-center justify-between">
+              <div>
+                <span className="text-xs text-slate-400 block">Sincronización Automática:</span>
+                <span className="text-sm font-bold text-emerald-400">
+                  {bcvRate ? `${bcvRate.toFixed(2)} Bs./USD` : 'Buscando...'}
+                </span>
+              </div>
+              <button
+                onClick={handleSyncAutoBcv}
+                disabled={loadingRate}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow transition-colors flex items-center space-x-1"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>Buscar en BCV</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateRateManual} className="space-y-4 pt-2 border-t border-slate-800">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Tasa Oficial en Bolívares (VES por 1 USD)
+                  Ajuste Manual de Tasa (VES por 1 USD)
                 </label>
                 <input
                   type="number"
@@ -171,7 +214,7 @@ export default function Navbar() {
                   required
                   value={newRateInput}
                   onChange={(e) => setNewRateInput(e.target.value)}
-                  placeholder="Ej: 105.80"
+                  placeholder="Ej: 755.15"
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
@@ -187,7 +230,7 @@ export default function Navbar() {
                   type="submit"
                   className="px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-600/30 transition-colors"
                 >
-                  Guardar Tasa BCV
+                  Guardar Tasa Manual
                 </button>
               </div>
             </form>
