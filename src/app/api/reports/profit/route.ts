@@ -4,82 +4,107 @@ import { prisma } from '@/lib/prisma';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type') || 'clients'; // 'clients' | 'invoices' | 'payments'
+    const exportType = searchParams.get('type') || 'payments'; // 'clients' | 'payments'
+    const weekendOnly = searchParams.get('weekendOnly') === 'true';
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
 
-    if (type === 'clients') {
-      // Exportación de Clientes / Representantes (Estructura saCliente de Profit Plus 2K12)
+    if (exportType === 'clients') {
       const representatives = await prisma.representative.findMany({
-        include: { students: true },
+        include: {
+          students: true,
+        },
       });
 
-      const rows = representatives.map((r) => ({
-        co_cli: r.cedula.replace(/[^0-[#]/g, ''),
+      const formattedClients = representatives.map((r) => ({
+        co_cli: r.cedula,
         cli_des: r.name,
-        rif: r.cedula,
-        dir: r.address || 'Valencia, Carabobo',
+        rif: r.cedula.startsWith('J-') || r.cedula.startsWith('V-') ? r.cedula : `V-${r.cedula}`,
+        dir: 'Prebo II, Valencia, Carabobo',
         telefonos: r.phone,
-        email: r.email || '',
-        co_tipo: 'CONTADO',
-        co_zon: 'VALENCIA',
-        co_seg: 'COLEGIO',
-        inactivo: 0,
+        email: r.email || 'sin_correo@colegio.com',
+        fec_emis: r.createdAt.toISOString().split('T')[0],
+        coment: `Representante de ${r.students.map((s) => `${s.firstName} ${s.lastName}`).join(', ')}`,
       }));
 
       return NextResponse.json({
-        type: 'clients',
-        system: 'Profit Plus 2K12',
+        success: true,
         tableName: 'saCliente',
-        count: rows.length,
-        data: rows,
+        count: formattedClients.length,
+        data: formattedClients,
       });
     }
 
-    if (type === 'invoices' || type === 'payments') {
-      // Exportación de Cobros y Facturación Fiscal (Estructura saFactura / saCobro de Profit Plus 2K12)
-      const payments = await prisma.payment.findMany({
-        include: {
-          studentFee: {
-            include: {
-              student: {
-                include: {
-                  representative: true,
-                },
+    // Filtrar pagos por fecha / fin de semana
+    let whereClause: any = {};
+
+    if (weekendOnly) {
+      // Filtrar cobros realizados en sábados y domingos de los últimos 7 días
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      whereClause.paymentDate = { gte: sevenDaysAgo };
+    } else if (startDateParam && endDateParam) {
+      whereClause.paymentDate = {
+        gte: new Date(startDateParam),
+        lte: new Date(endDateParam),
+      };
+    }
+
+    const payments = await prisma.payment.findMany({
+      where: whereClause,
+      include: {
+        studentFee: {
+          include: {
+            student: {
+              include: {
+                representative: true,
+                grade: true,
               },
             },
           },
         },
-        orderBy: { paymentDate: 'desc' },
-      });
+      },
+      orderBy: { paymentDate: 'desc' },
+    });
 
-      const rows = payments.map((p) => {
-        const rep = p.studentFee?.student?.representative;
-        return {
-          fec_emis: p.paymentDate.toISOString().split('T')[0],
-          fact_num: p.receiptNumber,
-          co_cli: rep?.cedula.replace(/[^0-9]/g, '') || '000000',
-          cli_des: rep?.name || 'Cliente',
-          rif: rep?.cedula || 'V-00000000',
-          monto_net: p.amountVes,
-          monto_usd: p.amountUsd,
-          tasa_bcv: p.bcvRate,
-          forma_pag: p.method,
-          num_ref: p.reference || '',
-          descrip: `Cobro Mensualidad - ${p.studentFee?.conceptName} (${p.studentFee?.student?.firstName} ${p.studentFee?.student?.lastName})`,
-        };
-      });
+    // Filtrar explícitamente días del fin de semana si weekendOnly es true
+    const filteredPayments = weekendOnly
+      ? payments.filter((p) => {
+          const day = new Date(p.paymentDate).getDay();
+          return day === 0 || day === 6; // 0 = Domingo, 6 = Sábado
+        })
+      : payments;
 
-      return NextResponse.json({
-        type: 'payments',
-        system: 'Profit Plus 2K12',
-        tableName: 'saCobro',
-        count: rows.length,
-        data: rows,
-      });
-    }
+    const formattedPayments = filteredPayments.map((p) => {
+      const rep = p.studentFee?.student?.representative;
+      const student = p.studentFee?.student;
 
-    return NextResponse.json({ error: 'Tipo de exportación no válido' }, { status: 400 });
+      return {
+        fact_num: p.receiptNumber,
+        fec_emis: new Date(p.paymentDate).toISOString().split('T')[0],
+        co_cli: rep?.cedula || 'V-00000000',
+        cli_des: rep?.name || 'Cliente Genérico',
+        rif: rep?.cedula ? (rep.cedula.startsWith('V-') || rep.cedula.startsWith('J-') ? rep.cedula : `V-${rep.cedula}`) : 'V-00000000',
+        forma_pag: p.method,
+        num_ref: p.reference || 'N/A',
+        monto_usd: p.amountUsd,
+        tasa_bcv: p.bcvRate,
+        monto_net: p.amountVes,
+        monto_iva: 0.0,
+        monto_tot: p.amountVes,
+        descrip: `Pago Mensualidad (${p.studentFee?.conceptName}) - Alumno: ${student?.firstName} ${student?.lastName} (${student?.grade?.name})`,
+      };
+    });
+
+    return NextResponse.json({
+      success: true,
+      tableName: 'saCobro_ProfitPlus',
+      count: formattedPayments.length,
+      isWeekendBatch: weekendOnly,
+      data: formattedPayments,
+    });
   } catch (error: any) {
-    console.error('Error en exportador Profit Plus 2K12:', error);
-    return NextResponse.json({ error: 'Error al generar datos de Profit Plus 2K12' }, { status: 500 });
+    console.error('Error al generar reporte Profit Plus 2K12:', error);
+    return NextResponse.json({ error: 'Error al exportar lote para Profit Plus 2K12' }, { status: 500 });
   }
 }

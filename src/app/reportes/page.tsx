@@ -13,7 +13,8 @@ import {
   Sparkles,
   Inbox,
   Database,
-  CheckCircle2
+  CheckCircle2,
+  Clock
 } from 'lucide-react';
 import { formatUsd, formatVes, formatDate } from '@/lib/utils';
 import { exportToExcel } from '@/lib/excelExport';
@@ -69,16 +70,27 @@ export default function ReportesPage() {
     exportToExcel('Libro_Ingresos_Colegio_Ramon_Pierluissi', 'Ingresos', formattedData);
   };
 
-  const handleExportProfitPlus = async (exportType: 'clients' | 'payments') => {
+  const handleExportProfitPlus = async (exportType: 'clients' | 'payments', weekendOnly = false) => {
     setExportingProfit(true);
     try {
-      const res = await fetch(`/api/reports/profit?type=${exportType}`);
+      const url = `/api/reports/profit?type=${exportType}${weekendOnly ? '&weekendOnly=true' : ''}`;
+      const res = await fetch(url);
       const result = await res.json();
 
       if (res.ok && result.data) {
+        if (result.data.length === 0) {
+          alert(weekendOnly 
+            ? 'No hay cobros registrados durante este fin de semana (sábado y domingo).' 
+            : 'No hay registros disponibles para exportar.'
+          );
+          return;
+        }
+
         const filename = exportType === 'clients' 
           ? 'Profit_Plus_2K12_saCliente_Colegio' 
-          : 'Profit_Plus_2K12_saCobro_Colegio';
+          : weekendOnly 
+            ? 'Profit_Plus_2K12_Lote_FinDeSemana_saCobro'
+            : 'Profit_Plus_2K12_saCobro_Colegio';
 
         exportToExcel(filename, result.tableName || 'ProfitPlus', result.data);
       } else {
@@ -128,38 +140,47 @@ export default function ReportesPage() {
         </button>
       </div>
 
-      {/* Tarjeta Especial de Exportación Profit Plus 2K12 */}
+      {/* Tarjeta Especial de Exportación Profit Plus 2K12 & Lotes del Fin de Semana */}
       <div className="bg-gradient-to-r from-indigo-950/80 via-slate-900 to-purple-950/60 border border-indigo-500/30 rounded-3xl p-6 shadow-2xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="inline-flex items-center space-x-1.5 px-3 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30 text-xs font-bold">
               <Database className="w-3.5 h-3.5" />
-              <span>Integración Contable Fiscal</span>
+              <span>Integración Contable Fiscal Profit Plus 2K12</span>
             </div>
             <h2 className="text-lg font-extrabold text-white">
-              Exportador para Profit Plus 2K12 (Facturación Fiscal)
+              Exportador Masivo para Profit Plus 2K12 (Facturación Fiscal)
             </h2>
             <p className="text-xs text-slate-300">
-              Genera los archivos masivos compatibles con las tablas <strong className="text-white">saCliente</strong> y <strong className="text-white">saCobro</strong> de Profit Plus 2K12 para la emisión de facturas fiscales en Venezuela.
+              Genera los archivos masivos compatibles con <strong className="text-white">saCliente</strong> y <strong className="text-white">saCobro</strong> para importar el lunes en Profit Plus 2K12 los cobros registrados el fin de semana.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => handleExportProfitPlus('payments', true)}
+              disabled={exportingProfit}
+              className="flex items-center space-x-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-lg shadow-amber-600/30 transition-all hover:scale-105"
+            >
+              <Clock className="w-4 h-4" />
+              <span>📅 Lote Fin de Semana (Sáb/Dom)</span>
+            </button>
+
             <button
               onClick={() => handleExportProfitPlus('clients')}
               disabled={exportingProfit}
               className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-lg shadow-indigo-600/30 transition-all hover:scale-105"
             >
               <Users className="w-4 h-4" />
-              <span>Exportar Clientes (saCliente)</span>
+              <span>Clientes (saCliente)</span>
             </button>
             <button
-              onClick={() => handleExportProfitPlus('payments')}
+              onClick={() => handleExportProfitPlus('payments', false)}
               disabled={exportingProfit}
               className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-lg shadow-purple-600/30 transition-all hover:scale-105"
             >
               <Download className="w-4 h-4" />
-              <span>Exportar Cobros (saCobro)</span>
+              <span>Todos los Cobros (saCobro)</span>
             </button>
           </div>
         </div>
