@@ -12,7 +12,8 @@ import {
   Settings, 
   DollarSign, 
   RefreshCw, 
-  Building2 
+  Award,
+  BookOpen
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -71,30 +72,47 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur border-b border-slate-800 text-white">
+    <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur border-b border-emerald-900/40 text-white shadow-2xl">
+      {/* Top Banner de Identidad Institucional */}
+      <div className="bg-gradient-to-r from-emerald-950 via-green-900 to-slate-900 px-4 py-1 border-b border-emerald-800/40 text-[11px] text-emerald-200 flex justify-between items-center font-medium">
+        <div className="flex items-center space-x-2">
+          <Award className="w-3.5 h-3.5 text-amber-400" />
+          <span>U.E. Ramón Pierluissi Ramírez — Más de 20 años de Excelencia Educativa en Valencia, Carabobo</span>
+        </div>
+        <div className="hidden sm:flex items-center space-x-4 text-emerald-300">
+          <span>Sede Prebo II</span>
+          <span>•</span>
+          <span>admonpierluissi@gmail.com</span>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Colegio Name */}
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
-              <Building2 className="w-6 h-6 text-white" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 p-0.5 shadow-lg shadow-emerald-600/30 group-hover:scale-105 transition-all">
+              <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-emerald-400" />
+              </div>
             </div>
             <div>
-              <span className="font-bold text-lg text-slate-100 tracking-tight block leading-tight">
-                Colegio Ramón Pierluissi
+              <span className="font-heading font-extrabold text-lg text-white tracking-tight block leading-tight">
+                U.E. Ramón Pierluissi Ramírez
               </span>
-              <span className="text-xs text-blue-400 font-medium">Sistema Financiero & Cobranzas</span>
+              <span className="text-[11px] text-emerald-400 font-semibold tracking-wide">
+                Sistema de Cobranzas & Gestión Financiera
+              </span>
             </div>
           </Link>
 
           {/* Tasa BCV Badge */}
           <div className="flex items-center space-x-4">
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-1.5 flex items-center space-x-2">
-              <div className="flex items-center text-xs font-semibold text-emerald-400">
+            <div className="bg-emerald-950/80 border border-emerald-800/80 rounded-xl px-3.5 py-1.5 flex items-center space-x-2 shadow-inner">
+              <div className="flex items-center text-xs font-bold text-amber-400">
                 <DollarSign className="w-3.5 h-3.5 mr-0.5" />
                 TASA BCV:
               </div>
-              <span className="font-bold text-sm text-slate-100">
+              <span className="font-bold text-sm text-white">
                 {bcvRate !== null ? `${bcvRate.toFixed(2)} Bs./$` : 'Cargando...'}
               </span>
               <button
@@ -102,8 +120,8 @@ export default function Navbar() {
                   setNewRateInput(bcvRate ? bcvRate.toString() : '');
                   setShowModalRate(true);
                 }}
-                title="Actualizar Tasa BCV"
-                className="p-1 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"
+                title="Actualizar Tasa BCV Oficial"
+                className="p-1 hover:bg-emerald-800 rounded-lg text-emerald-300 hover:text-white transition-colors"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loadingRate ? 'animate-spin' : ''}`} />
               </button>
@@ -112,7 +130,7 @@ export default function Navbar() {
         </div>
 
         {/* Links Navigation Bar */}
-        <nav className="flex space-x-1 overflow-x-auto pb-2 pt-1 no-scrollbar">
+        <nav className="flex space-x-1 overflow-x-auto pb-2 pt-1 no-scrollbar border-t border-slate-800/80">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -120,9 +138,9 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+                className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/30'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800'
                 }`}
               >
@@ -136,16 +154,16 @@ export default function Navbar() {
 
       {/* Modal Cambio Tasa BCV */}
       {showModalRate && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl text-white">
-            <h3 className="text-lg font-bold text-slate-100 mb-2">Actualizar Tasa BCV Oficial</h3>
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-emerald-800/80 rounded-2xl p-6 w-full max-w-md shadow-2xl text-white">
+            <h3 className="text-lg font-bold text-slate-100 mb-1">Actualizar Tasa BCV Oficial</h3>
             <p className="text-xs text-slate-400 mb-4">
-              La tasa oficial del Banco Central de Venezuela se aplica a todos los cobros y conversión de mensualidades en Bolívares.
+              Ajuste de la tasa de cambio del Banco Central de Venezuela aplicable a todos los recibos y mensualidades de la institución.
             </p>
             <form onSubmit={handleUpdateRate} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Tasa en Bolívares (VES por 1 USD)
+                  Tasa Oficial en Bolívares (VES por 1 USD)
                 </label>
                 <input
                   type="number"
@@ -154,7 +172,7 @@ export default function Navbar() {
                   value={newRateInput}
                   onChange={(e) => setNewRateInput(e.target.value)}
                   placeholder="Ej: 105.80"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-2">
@@ -167,7 +185,7 @@ export default function Navbar() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-600/30 transition-colors"
+                  className="px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-600/30 transition-colors"
                 >
                   Guardar Tasa BCV
                 </button>

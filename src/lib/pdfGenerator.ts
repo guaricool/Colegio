@@ -25,37 +25,37 @@ export interface PaymentReceiptData {
 export function generatePaymentReceiptPDF(data: PaymentReceiptData) {
   const doc = new jsPDF();
 
-  // Encabezado Membretado
-  doc.setFillColor(30, 58, 138); // Azul marino elegante (#1e3a8a)
-  doc.rect(0, 0, 210, 32, 'F');
+  // Encabezado Membretado Oficial Pierluissi Verde Esmeralda (#166534)
+  doc.setFillColor(22, 101, 52);
+  doc.rect(0, 0, 210, 34, 'F');
 
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.text(data.schoolName.toUpperCase(), 14, 15);
+  doc.setFontSize(16);
+  doc.text('U.E. RAMÓN PIERLUISSI RAMÍREZ', 14, 15);
 
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(`RIF: ${data.schoolRif}  |  Telf: ${data.schoolPhone}`, 14, 22);
-  doc.text(`Dirección: ${data.schoolAddress}`, 14, 27);
+  doc.text(`RIF: ${data.schoolRif}  |  Telf: ${data.schoolPhone}  |  admonpierluissi@gmail.com`, 14, 22);
+  doc.text(`Sede Valencia: ${data.schoolAddress}`, 14, 27);
 
   // Título de Recibo
-  doc.setTextColor(30, 58, 138);
+  doc.setTextColor(22, 101, 52);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.text('COMPROBANTE DE PAGO DIGITAL', 14, 45);
+  doc.setFontSize(15);
+  doc.text('COMPROBANTE DE PAGO DIGITAL', 14, 46);
 
   doc.setTextColor(100, 116, 139);
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(`N° Recibo: ${data.receiptNumber}`, 140, 45);
-  doc.text(`Fecha: ${formatDate(data.paymentDate)}`, 140, 51);
-  doc.text(`Tasa BCV Aplicada: ${data.bcvRate.toFixed(2)} Bs./USD`, 140, 57);
+  doc.text(`N° Recibo: ${data.receiptNumber}`, 140, 46);
+  doc.text(`Fecha Emisión: ${formatDate(data.paymentDate)}`, 140, 52);
+  doc.text(`Tasa BCV Aplicada: ${data.bcvRate.toFixed(2)} Bs./USD`, 140, 58);
 
   // Cuadro Datos del Representante y Estudiante
   autoTable(doc, {
-    startY: 63,
-    head: [['DATOS DEL REPRESENTANTE', 'DATOS DEL ESTUDIANTE']],
+    startY: 64,
+    head: [['DATOS DEL REPRESENTANTE', 'DATOS DEL ESTUDIANTE / NIVEL']],
     body: [
       [
         `Nombre: ${data.representativeName}\nCédula: ${data.representativeCedula}`,
@@ -63,15 +63,15 @@ export function generatePaymentReceiptPDF(data: PaymentReceiptData) {
       ],
     ],
     theme: 'grid',
-    headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
+    headStyles: { fillColor: [22, 101, 52], textColor: 255, fontStyle: 'bold' },
     styles: { fontSize: 9, cellPadding: 4 },
   });
 
   // Detalle del Pago
   const methodMap: Record<string, string> = {
-    PAGO_MOVIL: 'Pago Móvil',
-    ZELLE: 'Zelle',
-    TRANSFERENCIA_VES: 'Transferencia Bancaria (VES)',
+    PAGO_MOVIL: 'Pago Móvil (Bolívares)',
+    ZELLE: 'Zelle (USD)',
+    TRANSFERENCIA_VES: 'Transferencia Bancaria (Bolívares)',
     EFECTIVO_USD: 'Efectivo USD',
     EFECTIVO_VES: 'Efectivo Bolívares',
   };
@@ -80,7 +80,7 @@ export function generatePaymentReceiptPDF(data: PaymentReceiptData) {
 
   autoTable(doc, {
     startY: (doc as any).lastAutoTable.finalY + 8,
-    head: [['CONCEPTO / MENSUALIDAD', 'MÉTODO PAGO', 'REFERENCIA', 'MONTO ($)', 'MONTO (BS.)']],
+    head: [['CONCEPTO / MENSUALIDAD', 'MÉTODO DE PAGO', 'REFERENCIA', 'MONTO ($)', 'EQUIVALENTE (BS.)']],
     body: [
       [
         data.conceptName,
@@ -92,7 +92,7 @@ export function generatePaymentReceiptPDF(data: PaymentReceiptData) {
     ],
     theme: 'striped',
     headStyles: { fillColor: [15, 23, 42], textColor: 255, fontStyle: 'bold' },
-    styles: { fontSize: 10, cellPadding: 5 },
+    styles: { fontSize: 9.5, cellPadding: 5 },
     columnStyles: {
       3: { halign: 'right', fontStyle: 'bold' },
       4: { halign: 'right', fontStyle: 'bold' },
@@ -102,7 +102,7 @@ export function generatePaymentReceiptPDF(data: PaymentReceiptData) {
   // Observaciones si existen
   let currentY = (doc as any).lastAutoTable.finalY + 12;
   if (data.notes) {
-    doc.setFontSize(9);
+    doc.setFontSize(8.5);
     doc.setTextColor(71, 85, 105);
     doc.text(`Observaciones: ${data.notes}`, 14, currentY);
     currentY += 10;
@@ -116,11 +116,11 @@ export function generatePaymentReceiptPDF(data: PaymentReceiptData) {
 
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
-  doc.text('Firma Autorizada / Sello Colegio', 25, currentY + 30);
+  doc.text('Administración U.E. Ramón Pierluissi R.', 20, currentY + 30);
   doc.text('Firma y Conformidad del Representante', 137, currentY + 30);
 
-  doc.text('Este documento es un comprobante de pago electrónico emitido por el Colegio Ramón Pierluissi.', 14, 285);
+  doc.text('Este documento es un comprobante de pago digital emitido por la U.E. Ramón Pierluissi Ramírez (Valencia, Carabobo).', 14, 285);
 
   // Descargar PDF
-  doc.save(`Recibo_${data.receiptNumber}.pdf`);
+  doc.save(`Recibo_Pierluissi_${data.receiptNumber}.pdf`);
 }

@@ -1,1 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Galada&family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&display=swap');
 @import "tailwindcss";
+
+:root {
+  --pierluissi-green: #166534;
+  --pierluissi-green-neon: #00FF88;
+  --pierluissi-blue: #1E3A8A;
+  --pierluissi-dynamic: #005EB8;
+  --pierluissi-aqua: #64C1B1;
+  --pierluissi-sky: #35A7E0;
+  --pierluissi-gold: #D4A843;
+  --pierluissi-orange: #E77820;
+  --pierluissi-cream: #FFF8F0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.font-heading {
+  font-family: 'Playfair Display', serif;
+}
+
+.font-slogan {
+  font-family: 'Galada', cursive;
+}
+
+/* Glassmorphism Pierluissi */
+.glass-pierluissi {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(100, 193, 177, 0.2);
+}
+
+.text-gradient-pierluissi {
+  background: linear-gradient(135deg, #00FF88 0%, #64C1B1 50%, #35A7E0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #D4A843 0%, #F0D68A 50%, #FFD700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
