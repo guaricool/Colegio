@@ -1,0 +1,14 @@
+http:
+  routers:
+    colegio-dash-http:
+      rule: "Host(`colegio.13.140.181.29.sslip.io`) || Host(`www.colegio.13.140.181.29.sslip.io`) || Host(`colegioramonpierluissi.13.140.181.29.sslip.io`)"
+      entryPoints:
+        - http
+      service: colegio-frontend-service
+      priority: 1000
+  services:
+    colegio-frontend-service:
+      loadBalancer:
+        servers:
+          - url: "http://10.0.1.22:3000"
+        passHostHeader: true

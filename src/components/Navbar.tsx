@@ -93,6 +93,7 @@ export default function Navbar() {
     { label: 'Dashboard', href: '/', icon: LayoutDashboard },
     { label: 'Cobros y Recibos', href: '/cobros', icon: CreditCard },
     { label: 'Estudiantes', href: '/estudiantes', icon: GraduationCap },
+    { label: 'Portal Padres (Login)', href: '/representante/login', icon: Award },
     { label: 'Recordatorios WhatsApp', href: '/whatsapp', icon: MessageSquare },
     { label: 'Reportes Contables', href: '/reportes', icon: FileSpreadsheet },
     { label: 'Configuración', href: '/configuracion', icon: Settings },
