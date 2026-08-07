@@ -1,6 +1,6 @@
 # Memoria del Proyecto - Colegio Ramón Pierluissi Ramírez
 
-Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación Obligatoria & AdminAuthGuard (SuperAdmin, Admin, Cobranza), Dockerfile Optimizado, Exportador para Profit Plus 2K12, CRM de Registro de Llamadas de Cobranza, Dashboard de Auditoría de Desempeño con Filtros Avanzados y Registro Privado Exclusivo para SuperAdmin.
+Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación Obligatoria & AdminAuthGuard (SuperAdmin, Admin, Cobranza), Dockerfile Optimizado, Exportador para Profit Plus 2K12, CRM de Registro de Llamadas de Cobranza, Dashboard de Auditoría de Desempeño con Filtros Avanzados, Auditoría de Ciberseguridad & Sanitización de Inputs, Encabezados HTTP Defensivos, Protección de PII de Estudiantes/Representantes, y Cotización Formal YoguiTech LLC.
 
 ## 📌 Reglas de Flujo de Trabajo (Obligatorias)
 
@@ -23,6 +23,19 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
 
 ## 🚀 Módulos Implementados
 
+- **Encabezados HTTP Defensivos & Protección de PII (`next.config.ts`, `/api/students`, `/api/representatives`)**:
+  - Encabezados de seguridad globales: `Strict-Transport-Security` (HSTS de 2 años), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy` y `Permissions-Policy`.
+  - Sanitización estricta contra XSS/inyecciones en datos de estudiantes (nombres, cédulas, becas) y representantes (teléfonos, direcciones, correos).
+- **Auditoría de Ciberseguridad & Sanitización de Inputs**:
+  - Sanitización de entradas de texto contra XSS e inyecciones en APIs de usuarios (`/api/auth/register`, `/api/users`).
+  - Validación de formato regex de correo electrónico y longitud mínima de contraseña (min 6 caracteres).
+  - Protección de concurrencia en `/api/payments` con correlativos de recibo únicos e irrepetibles (`REC-YYYY-0001-XXX`).
+  - Validaciones de montos y tasas numéricas mayores a cero (`amountUsd > 0`, `bcvRate > 0`).
+- **Cotización Comercial Formal YoguiTech LLC**:
+  - Generación de cotización membretada en PDF (`Cotizacion_YoguiTech_Colegio_Pierluissi.pdf`) e informe Markdown (`cotizacion_sistema_colegio.md`).
+  - Total honorarios de desarrollo: **$2.500 USD** (con descuento institucional aplicado).
+  - Planes de mantenimiento flexibles: Mensual ($120/mes), Bimensual ($220/ciclo) y Trimestral ($300/ciclo).
+  - Teléfono corporativo internacional: `+1-773-236-5883` y correo `yoguitech@gmail.com`.
 - **Dashboard de Auditoría de Cobranza con Filtros Avanzados (`/reportes`)**:
   - Pestaña **"📊 Auditoría de Cobranza"** repotenciada con una **barra de filtros multicriterio en tiempo real**:
     - **Filtro por Rango de Fechas**: Fecha Desde y Fecha Hasta con atajos de un solo clic (*Hoy*, *Esta Semana*, *Este Mes* y *Limpiar Filtros*).
@@ -38,12 +51,9 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
   - Modal interactivo de llamada en `/cobros` al hacer clic en un estudiante adeudado.
   - Botón "Intento Fallido" y Botón "Comunicado Con Éxito" con área de observaciones.
   - Cruce de datos automático a `PAGADO / CONVERTED_PAID`.
-- **Privacidad y Eliminación de Marcas de Agua Personales**: Limpieza total de datos personales en los placeholders de login, registro y configuración.
 - **Dockerfile & Nixpacks.toml Optimizado**: Solución al fallo `ECONNRESET` de Nixpacks en Coolify.
 - **Bloqueo Total Administrativo & AdminAuthGuard (`AdminAuthGuard.tsx`)**: Protección global de las 6 páginas administrativas (`/dashboard`, `/cobros`, `/estudiantes`, `/whatsapp`, `/reportes`, `/configuracion`).
 - **Autenticación Administrativa & Control de Roles (RBAC)**: SuperAdmin (`cpierluissis@gmail.com`), Administrador General y Área de Cobranza.
 - **Exportador Contable Profit Plus 2K12 & Lotes Fin de Semana (`/reportes`)**: Agrupación de cobros del fin de semana (sábado/domingo) para exportación en Excel/CSV (`saCliente` y `saCobro`).
 - **Escáner Inteligente e IA Gemini Vision (`/api/payments/ocr`)**: Lector automático de capturas/fotos de Pago Móvil y Banco Provincial.
-- **Cobro Instantáneo C2P Dinero Rápido (`/api/payments/c2p`)**: Débito directo C2P en el Portal de Representantes sin tarjetas.
-- **Tasa BCV Doble (Dólar $ & Euro €)**: Indicador gemelo en tiempo real (`USD: 75.51` | `EUR: 81.20`).
 - **Landing Page Institucional (`/`)**: Presentación oficial de la U.E. Ramón Pierluissi Ramírez.
