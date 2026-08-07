@@ -20,7 +20,11 @@ import {
   UserCheck,
   Award,
   Activity,
-  Check
+  Check,
+  Search,
+  Filter,
+  RefreshCw,
+  X
 } from 'lucide-react';
 import { formatUsd, formatVes, formatDate } from '@/lib/utils';
 import { exportToExcel } from '@/lib/excelExport';
@@ -34,13 +38,28 @@ export default function ReportesPage() {
   const [exportingProfit, setExportingProfit] = useState(false);
   const [activeTab, setActiveTab] = useState<'FINANCIAL' | 'CALLS_AUDIT'>('FINANCIAL');
 
+  // Estados de Filtro para Auditoría de Cobranza
+  const [callStatusFilter, setCallStatusFilter] = useState<string>('ALL');
+  const [callResultFilter, setCallResultFilter] = useState<string>('ALL');
+  const [callOperatorFilter, setCallOperatorFilter] = useState<string>('ALL');
+  const [callStartDate, setCallStartDate] = useState<string>('');
+  const [callEndDate, setCallEndDate] = useState<string>('');
+  const [callSearchQuery, setCallSearchQuery] = useState<string>('');
+
   const loadReports = async () => {
     setLoading(true);
     try {
+      let callsUrl = '/api/collection-calls?';
+      if (callStatusFilter !== 'ALL') callsUrl += `status=${callStatusFilter}&`;
+      if (callResultFilter !== 'ALL') callsUrl += `result=${callResultFilter}&`;
+      if (callOperatorFilter !== 'ALL') callsUrl += `operator=${encodeURIComponent(callOperatorFilter)}&`;
+      if (callStartDate) callsUrl += `startDate=${callStartDate}&`;
+      if (callEndDate) callsUrl += `endDate=${callEndDate}&`;
+
       const [repRes, payRes, callsRes] = await Promise.all([
         fetch('/api/reports'),
         fetch('/api/payments'),
-        fetch('/api/collection-calls'),
+        fetch(callsUrl),
       ]);
       const repJson = await repRes.json();
       const payJson = await payRes.json();
@@ -58,7 +77,31 @@ export default function ReportesPage() {
 
   useEffect(() => {
     loadReports();
-  }, []);
+  }, [callStatusFilter, callResultFilter, callOperatorFilter, callStartDate, callEndDate]);
+
+  const setDatePreset = (preset: 'today' | 'week' | 'month' | 'clear') => {
+    const today = new Date();
+    if (preset === 'today') {
+      const dateStr = today.toISOString().split('T')[0];
+      setCallStartDate(dateStr);
+      setCallEndDate(dateStr);
+    } else if (preset === 'week') {
+      const firstDay = new Date(today.setDate(today.getDate() - today.getDay()));
+      setCallStartDate(firstDay.toISOString().split('T')[0]);
+      setCallEndDate(new Date().toISOString().split('T')[0]);
+    } else if (preset === 'month') {
+      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+      setCallStartDate(firstDay.toISOString().split('T')[0]);
+      setCallEndDate(new Date().toISOString().split('T')[0]);
+    } else {
+      setCallStartDate('');
+      setCallEndDate('');
+      setCallStatusFilter('ALL');
+      setCallResultFilter('ALL');
+      setCallOperatorFilter('ALL');
+      setCallSearchQuery('');
+    }
+  };
 
   const handleExportPaymentsExcel = () => {
     if (!payments.length) {
@@ -137,7 +180,20 @@ export default function ReportesPage() {
     conversionRate: 0,
     operators: [],
   };
-  const callsList = callAuditData?.calls || [];
+  const callsListRaw = callAuditData?.calls || [];
+
+  // Filtrado local adicional por búsqueda de texto
+  const filteredCallsList = callsListRaw.filter((c: any) => {
+    if (!callSearchQuery.trim()) return true;
+    const q = callSearchQuery.toLowerCase();
+    const studentName = `${c.studentFee?.student?.firstName} ${c.studentFee?.student?.lastName}`.toLowerCase();
+    const repName = (c.studentFee?.student?.representative?.name || '').toLowerCase();
+    const repPhone = (c.studentFee?.student?.representative?.phone || '').toLowerCase();
+    const notes = (c.notes || '').toLowerCase();
+    const op = (c.operatorName || '').toLowerCase();
+
+    return studentName.includes(q) || repName.includes(q) || repPhone.includes(q) || notes.includes(q) || op.includes(q);
+  });
 
   return (
     <AdminAuthGuard allowedRoles={['SUPER_ADMIN', 'ADMIN']}>
@@ -340,7 +396,112 @@ export default function ReportesPage() {
 
         {/* PESTAÑA: AUDITORÍA Y DESEMPEÑO DEL PERSONAL DE COBRANZA */}
         {activeTab === 'CALLS_AUDIT' && (
-          <div className="space-y-8">
+          <div className="space-y-6">
+            {/* BARRA DE FILTROS AVANZADOS MULTICRITERIO */}
+            <div className="bg-slate-900/90 border border-indigo-500/30 rounded-3xl p-5 shadow-2xl space-y-4">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+                <div className="flex items-center space-x-2">
+                  <Filter className="w-5 h-5 text-indigo-400" />
+                  <h3 className="text-sm font-extrabold text-white">Filtros de Búsqueda & Auditoría de Cobranza</h3>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => setDatePreset('today')}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-bold transition-all border border-slate-700"
+                  >
+                    Hoy
+                  </button>
+                  <button
+                    onClick={() => setDatePreset('week')}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-bold transition-all border border-slate-700"
+                  >
+                    Esta Semana
+                  </button>
+                  <button
+                    onClick={() => setDatePreset('month')}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-bold transition-all border border-slate-700"
+                  >
+                    Este Mes
+                  </button>
+                  <button
+                    onClick={() => setDatePreset('clear')}
+                    className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-bold transition-all border border-rose-500/30 flex items-center space-x-1"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Limpiar Filtros</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+                {/* Búsqueda por texto */}
+                <div className="lg:col-span-2 relative">
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">Buscar por Estudiante / Representante</label>
+                  <div className="relative">
+                    <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      placeholder="Nombre, cédula, nota o teléfono..."
+                      value={callSearchQuery}
+                      onChange={(e) => setCallSearchQuery(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-semibold"
+                    />
+                  </div>
+                </div>
+
+                {/* Filtro Estado Llamada */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">Estado de Llamada</label>
+                  <select
+                    value={callStatusFilter}
+                    onChange={(e) => setCallStatusFilter(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="ALL">Todas las Llamadas</option>
+                    <option value="CONTACTED">🟢 Comunicado con Éxito</option>
+                    <option value="NO_ANSWER">🔴 Intento Fallido (Sin respuesta)</option>
+                  </select>
+                </div>
+
+                {/* Filtro Cruce de Pago */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">Resultado de Pago</label>
+                  <select
+                    value={callResultFilter}
+                    onChange={(e) => setCallResultFilter(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="ALL">Todos los Resultados</option>
+                    <option value="CONVERTED_PAID">💜 Pago Confirmado (Convertido)</option>
+                    <option value="PENDING">⏳ Pendiente de Pago</option>
+                  </select>
+                </div>
+
+                {/* Fecha Desde */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">Fecha Desde</label>
+                  <input
+                    type="date"
+                    value={callStartDate}
+                    onChange={(e) => setCallStartDate(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-white font-semibold focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+
+                {/* Fecha Hasta */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">Fecha Hasta</label>
+                  <input
+                    type="date"
+                    value={callEndDate}
+                    onChange={(e) => setCallEndDate(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-white font-semibold focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* KPIs de Rendimiento de Cobranza */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-slate-900/90 border border-indigo-500/30 rounded-2xl p-5 shadow-xl glass-card-hover">
@@ -349,7 +510,7 @@ export default function ReportesPage() {
                   <PhoneCall className="w-5 h-5 text-indigo-400" />
                 </div>
                 <div className="text-2xl font-black text-white">{callStats.totalCalls} llamadas</div>
-                <span className="text-[11px] text-slate-400 font-semibold mt-1 block">Registradas por el personal</span>
+                <span className="text-[11px] text-slate-400 font-semibold mt-1 block">Registradas según filtro</span>
               </div>
 
               <div className="bg-slate-900/90 border border-emerald-500/30 rounded-2xl p-5 shadow-xl glass-card-hover">
@@ -406,7 +567,7 @@ export default function ReportesPage() {
                     {callStats.operators.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
-                          No se han registrado gestiones de llamada por parte del personal de cobranza aún.
+                          No se han registrado gestiones de llamada en el rango o filtros seleccionados.
                         </td>
                       </tr>
                     ) : (
@@ -439,10 +600,15 @@ export default function ReportesPage() {
 
             {/* Historial Detallado Auditante de Gestiones (Cruce con Pago) */}
             <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
-              <h2 className="text-base font-extrabold text-white flex items-center space-x-2">
-                <Activity className="w-5 h-5 text-purple-400" />
-                <span>Línea de Tiempo Auditante (Cruce de Llamada ➔ Pago Confirmado)</span>
-              </h2>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h2 className="text-base font-extrabold text-white flex items-center space-x-2">
+                  <Activity className="w-5 h-5 text-purple-400" />
+                  <span>Línea de Tiempo Auditante (Cruce de Llamada ➔ Pago Confirmado)</span>
+                </h2>
+                <span className="text-xs font-bold text-indigo-400 bg-slate-950 px-3 py-1 rounded-xl border border-slate-800">
+                  Mostrando {filteredCallsList.length} gestiones
+                </span>
+              </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
@@ -458,16 +624,16 @@ export default function ReportesPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
-                    {callsList.length === 0 ? (
+                    {filteredCallsList.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="px-4 py-12 text-center text-slate-500 space-y-2">
                           <Inbox className="w-10 h-10 mx-auto text-slate-600 opacity-60" />
-                          <div className="font-semibold text-slate-400">No hay eventos de cobranza registrados</div>
-                          <div className="text-[11px] text-slate-500">Utiliza el botón &quot;Gestión Llamada&quot; en la sección de Cobros para iniciar el seguimiento.</div>
+                          <div className="font-semibold text-slate-400">No se encontraron llamadas que coincidan con los filtros</div>
+                          <div className="text-[11px] text-slate-500">Prueba ajustando el rango de fechas o los criterios de búsqueda arriba.</div>
                         </td>
                       </tr>
                     ) : (
-                      callsList.map((c: any) => {
+                      filteredCallsList.map((c: any) => {
                         const isConverted = c.result === 'CONVERTED_PAID' || c.studentFee?.status === 'PAID';
 
                         return (

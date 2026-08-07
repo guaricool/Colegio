@@ -1,6 +1,6 @@
 # Memoria del Proyecto - Colegio Ramón Pierluissi Ramírez
 
-Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación Obligatoria & AdminAuthGuard (SuperAdmin, Admin, Cobranza), Dockerfile Optimizado, Exportador para Profit Plus 2K12, CRM de Registro de Llamadas de Cobranza, Dashboard de Auditoría de Desempeño y Registro Privado Exclusivo para SuperAdmin.
+Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación Obligatoria & AdminAuthGuard (SuperAdmin, Admin, Cobranza), Dockerfile Optimizado, Exportador para Profit Plus 2K12, CRM de Registro de Llamadas de Cobranza, Dashboard de Auditoría de Desempeño con Filtros Avanzados y Registro Privado Exclusivo para SuperAdmin.
 
 ## 📌 Reglas de Flujo de Trabajo (Obligatorias)
 
@@ -23,6 +23,13 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
 
 ## 🚀 Módulos Implementados
 
+- **Dashboard de Auditoría de Cobranza con Filtros Avanzados (`/reportes`)**:
+  - Pestaña **"📊 Auditoría de Cobranza"** repotenciada con una **barra de filtros multicriterio en tiempo real**:
+    - **Filtro por Rango de Fechas**: Fecha Desde y Fecha Hasta con atajos de un solo clic (*Hoy*, *Esta Semana*, *Este Mes* y *Limpiar Filtros*).
+    - **Filtro por Estado de Llamada**: `Todas`, `🟢 Comunicado con Éxito` o `🔴 Intento Fallido (No contestó)`.
+    - **Filtro por Resultado de Pago (Cruce)**: `Todos`, `💜 Pago Confirmado (Convertido)` o `⏳ Pendiente de Pago`.
+    - **Búsqueda por Texto**: Filtrado instantáneo por nombre del alumno, representante, cédula, nota u operador.
+  - KPIs globales de llamadas, contactados, no contestados, efectividad % y dinero recuperado ($) actualizados dinámicamente según el filtro.
 - **Restricción de Registro Público & Creación Privada de Usuarios**:
   - Eliminado el enlace de registro público externo en la vista de login `/admin/login`.
   - La pantalla `/admin/register` ahora está **protegida con `AdminAuthGuard`** para que solo SuperAdmin y Administradores autenticados puedan acceder.
@@ -31,9 +38,6 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
   - Modal interactivo de llamada en `/cobros` al hacer clic en un estudiante adeudado.
   - Botón "Intento Fallido" y Botón "Comunicado Con Éxito" con área de observaciones.
   - Cruce de datos automático a `PAGADO / CONVERTED_PAID`.
-- **Dashboard de Auditoría y Desempeño de Cobranza (`/reportes`)**:
-  - Pestaña **"📊 Auditoría de Cobranza"** con KPIs de efectividad (%), gestiones totales, contactados, intentos fallidos y monto recuperado ($).
-  - Tabla de productividad por operador/cajero.
 - **Privacidad y Eliminación de Marcas de Agua Personales**: Limpieza total de datos personales en los placeholders de login, registro y configuración.
 - **Dockerfile & Nixpacks.toml Optimizado**: Solución al fallo `ECONNRESET` de Nixpacks en Coolify.
 - **Bloqueo Total Administrativo & AdminAuthGuard (`AdminAuthGuard.tsx`)**: Protección global de las 6 páginas administrativas (`/dashboard`, `/cobros`, `/estudiantes`, `/whatsapp`, `/reportes`, `/configuracion`).

@@ -5,10 +5,40 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const feeId = searchParams.get('feeId');
+    const status = searchParams.get('status');
+    const result = searchParams.get('result');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    const operator = searchParams.get('operator');
 
     const whereClause: any = {};
+
     if (feeId) {
       whereClause.studentFeeId = feeId;
+    }
+
+    if (status && status !== 'ALL') {
+      whereClause.status = status;
+    }
+
+    if (result && result !== 'ALL') {
+      whereClause.result = result;
+    }
+
+    if (operator && operator !== 'ALL') {
+      whereClause.operatorName = { contains: operator };
+    }
+
+    if (startDate || endDate) {
+      whereClause.createdAt = {};
+      if (startDate) {
+        whereClause.createdAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        whereClause.createdAt.lte = end;
+      }
     }
 
     const calls = await prisma.collectionCall.findMany({
@@ -38,11 +68,11 @@ export async function GET(request: Request) {
     const noAnswerCount = calls.filter((c) => c.status === 'NO_ANSWER').length;
     
     // Cruce: Gestiones que resultaron en un pago exitoso
-    const convertedCalls = calls.filter((c) => c.result === 'CONVERTED_PAID' || c.studentFee.status === 'PAID');
+    const convertedCalls = calls.filter((c) => c.result === 'CONVERTED_PAID' || c.studentFee?.status === 'PAID');
     const convertedCount = convertedCalls.length;
     
     // Dinero recuperado por gestiones de cobranza ($)
-    const recoveredUsd = convertedCalls.reduce((acc, c) => acc + (c.studentFee.paidUsd || c.studentFee.amountUsd), 0);
+    const recoveredUsd = convertedCalls.reduce((acc, c) => acc + (c.studentFee?.paidUsd || c.studentFee?.amountUsd || 0), 0);
 
     // Tasa de conversión (%)
     const conversionRate = totalCalls > 0 ? (convertedCount / totalCalls) * 100 : 0;
@@ -64,9 +94,9 @@ export async function GET(request: Request) {
       operatorStats[opName].totalCalls += 1;
       if (c.status === 'CONTACTED') operatorStats[opName].contacted += 1;
       if (c.status === 'NO_ANSWER') operatorStats[opName].noAnswer += 1;
-      if (c.result === 'CONVERTED_PAID' || c.studentFee.status === 'PAID') {
+      if (c.result === 'CONVERTED_PAID' || c.studentFee?.status === 'PAID') {
         operatorStats[opName].converted += 1;
-        operatorStats[opName].recoveredUsd += (c.studentFee.paidUsd || c.studentFee.amountUsd);
+        operatorStats[opName].recoveredUsd += (c.studentFee?.paidUsd || c.studentFee?.amountUsd || 0);
       }
     });
 
