@@ -86,6 +86,15 @@ export async function POST(request: Request) {
       },
     });
 
+    // Cruce de historial: Actualizar gestiones de cobranza previas a pago confirmado
+    await prisma.collectionCall.updateMany({
+      where: { studentFeeId, result: 'PENDING' },
+      data: {
+        result: 'CONVERTED_PAID',
+        paidAt: new Date(),
+      },
+    });
+
     return NextResponse.json(payment);
   } catch (error) {
     console.error('Error al registrar pago:', error);

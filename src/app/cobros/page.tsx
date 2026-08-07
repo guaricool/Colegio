@@ -14,7 +14,12 @@ import {
   X,
   Sparkles,
   Inbox,
-  ArrowUpRight
+  ArrowUpRight,
+  PhoneCall,
+  PhoneOff,
+  MessageSquare,
+  History,
+  UserCheck
 } from 'lucide-react';
 import { formatUsd, formatVes, formatDate } from '@/lib/utils';
 import { generatePaymentReceiptPDF } from '@/lib/pdfGenerator';
@@ -37,6 +42,13 @@ export default function CobrosPage() {
   const [payReference, setPayReference] = useState<string>('');
   const [payNotes, setPayNotes] = useState<string>('');
   const [submittingPayment, setSubmittingPayment] = useState(false);
+
+  // Modal Registro de Llamada / Gestión de Cobranza
+  const [selectedCallFee, setSelectedCallFee] = useState<any>(null);
+  const [callNotes, setCallNotes] = useState<string>('');
+  const [showCallNotesInput, setShowCallNotesInput] = useState(false);
+  const [submittingCall, setSubmittingCall] = useState(false);
+  const [previousCalls, setPreviousCalls] = useState<any[]>([]);
 
   const loadAll = async () => {
     setLoading(true);
@@ -75,6 +87,63 @@ export default function CobrosPage() {
     setPayMethod('PAGO_MOVIL');
     setPayReference('');
     setPayNotes('');
+  };
+
+  const openCallModal = async (fee: any) => {
+    setSelectedCallFee(fee);
+    setCallNotes('');
+    setShowCallNotesInput(false);
+    try {
+      const res = await fetch(`/api/collection-calls?feeId=${fee.id}`);
+      const data = await res.json();
+      if (data.calls) {
+        setPreviousCalls(data.calls);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSaveCall = async (status: 'CONTACTED' | 'NO_ANSWER', customNotes?: string) => {
+    if (!selectedCallFee) return;
+    setSubmittingCall(true);
+
+    try {
+      let sessionUser = null;
+      const sessionStr = localStorage.getItem('pierluissi_admin_session');
+      if (sessionStr) {
+        sessionUser = JSON.parse(sessionStr);
+      }
+
+      const payload = {
+        studentFeeId: selectedCallFee.id,
+        status,
+        notes: customNotes || callNotes || (status === 'NO_ANSWER' ? 'Intento fallido - No contestó la llamada' : ''),
+        userId: sessionUser?.id || null,
+        operatorName: sessionUser ? `${sessionUser.firstName} ${sessionUser.lastName}` : 'Personal de Cobranza',
+      };
+
+      const res = await fetch('/api/collection-calls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        setSelectedCallFee(null);
+        setCallNotes('');
+        setShowCallNotesInput(false);
+        await loadAll();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Error al guardar la gestión');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error en la conexión');
+    } finally {
+      setSubmittingCall(false);
+    }
   };
 
   const handleRegisterPayment = async (e: React.FormEvent) => {
@@ -176,7 +245,7 @@ export default function CobrosPage() {
               <span>Módulo de Cobros & Recibos Digitales</span>
             </h1>
             <p className="text-xs text-slate-300 mt-1">
-              Gestión de mensualidades, cobro en Pago Móvil/Zelle y emisión de recibos PDF con el membrete oficial
+              Gestión de mensualidades, registro de llamadas de cobranza y emisión de recibos PDF
             </p>
           </div>
 
@@ -247,7 +316,7 @@ export default function CobrosPage() {
                       <th className="px-4 py-3.5">Pendiente ($ / VES)</th>
                       <th className="px-4 py-3.5">Vencimiento</th>
                       <th className="px-4 py-3.5">Estado</th>
-                      <th className="px-4 py-3.5 text-right">Acción</th>
+                      <th className="px-4 py-3.5 text-right">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
@@ -308,16 +377,27 @@ export default function CobrosPage() {
                               )}
                             </td>
                             <td className="px-4 py-3.5 text-right">
-                              {!isPaid ? (
-                                <button
-                                  onClick={() => openPaymentModal(fee)}
-                                  className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-[11px] font-extrabold px-3.5 py-1.5 rounded-xl shadow-lg shadow-emerald-600/30 transition-all hover:scale-105"
-                                >
-                                  Registrar Pago
-                                </button>
-                              ) : (
-                                <span className="text-xs text-slate-500 font-semibold">Al Día</span>
-                              )}
+                              <div className="flex items-center justify-end space-x-2">
+                                {!isPaid && (
+                                  <button
+                                    onClick={() => openCallModal(fee)}
+                                    className="flex items-center space-x-1 bg-slate-800 hover:bg-slate-700 text-indigo-300 text-[11px] font-bold px-3 py-1.5 rounded-xl border border-indigo-500/30 transition-all hover:scale-105"
+                                  >
+                                    <PhoneCall className="w-3.5 h-3.5" />
+                                    <span>Gestión Llamada</span>
+                                  </button>
+                                )}
+                                {!isPaid ? (
+                                  <button
+                                    onClick={() => openPaymentModal(fee)}
+                                    className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-[11px] font-extrabold px-3.5 py-1.5 rounded-xl shadow-lg shadow-emerald-600/30 transition-all hover:scale-105"
+                                  >
+                                    Registrar Pago
+                                  </button>
+                                ) : (
+                                  <span className="text-xs text-slate-500 font-semibold">Al Día</span>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -393,6 +473,147 @@ export default function CobrosPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Registrar Gestión de Llamada (CRM Cobranza) */}
+        {selectedCallFee && (
+          <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-slate-900 border border-indigo-500/40 rounded-3xl p-6 w-full max-w-lg shadow-2xl text-white my-8 space-y-4">
+              <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+                <div>
+                  <h3 className="text-lg font-extrabold text-white flex items-center space-x-2">
+                    <PhoneCall className="w-5 h-5 text-indigo-400" />
+                    <span>Registro de Gestión de Llamada</span>
+                  </h3>
+                  <p className="text-xs text-indigo-300 font-bold mt-0.5">{selectedCallFee.conceptName}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedCallFee(null)}
+                  className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Ficha Informativa del Representante */}
+              <div className="bg-slate-950/90 border border-slate-800 p-4 rounded-2xl text-xs space-y-2 shadow-inner">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-medium">Representante:</span>
+                  <span className="font-extrabold text-white text-sm">
+                    {selectedCallFee.student?.representative?.name}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Cédula:</span>
+                  <span className="font-mono text-slate-300">{selectedCallFee.student?.representative?.cedula}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Teléfono WhatsApp:</span>
+                  <span className="font-mono font-bold text-emerald-400 text-sm">
+                    {selectedCallFee.student?.representative?.phone}
+                  </span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-slate-800">
+                  <span className="text-slate-400 font-medium">Estudiante:</span>
+                  <span className="font-bold text-slate-200">
+                    {selectedCallFee.student?.firstName} {selectedCallFee.student?.lastName} ({selectedCallFee.student?.grade?.name})
+                  </span>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-slate-800">
+                  <span className="text-slate-400 font-medium">Saldo Pendiente:</span>
+                  <span className="font-black text-amber-400 text-sm">
+                    {formatUsd(selectedCallFee.amountUsd - selectedCallFee.paidUsd)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Botones de Registro Rápido */}
+              <div className="space-y-3 pt-2">
+                <label className="block text-xs font-bold text-slate-300">
+                  Seleccione el Resultado de la Gestión de Cobranza:
+                </label>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    disabled={submittingCall}
+                    onClick={() => handleSaveCall('NO_ANSWER')}
+                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-300 transition-all hover:scale-105 space-y-1.5 text-center"
+                  >
+                    <PhoneOff className="w-6 h-6 text-rose-400" />
+                    <span className="text-xs font-extrabold">1. Intento Fallido</span>
+                    <span className="text-[10px] text-rose-400/80 font-medium">No contestó / Fuera de servicio</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={submittingCall}
+                    onClick={() => setShowCallNotesInput(true)}
+                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-300 transition-all hover:scale-105 space-y-1.5 text-center"
+                  >
+                    <UserCheck className="w-6 h-6 text-emerald-400" />
+                    <span className="text-xs font-extrabold">2. Comunicado Con Éxito</span>
+                    <span className="text-[10px] text-emerald-400/80 font-medium">Se conversó y dio respuesta</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Formulario de Observación/Compromiso de Pago */}
+              {showCallNotesInput && (
+                <div className="bg-slate-950 p-4 rounded-2xl border border-indigo-500/40 space-y-3">
+                  <label className="block text-xs font-bold text-indigo-300">
+                    Detalles y Compromiso de Pago Acordado:
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Ej: El representante indica que mañana asistirá a la caja del colegio a pagar en efectivo USD..."
+                    value={callNotes}
+                    onChange={(e) => setCallNotes(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-semibold"
+                  />
+
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCallNotesInput(false)}
+                      className="px-3 py-2 text-xs text-slate-400 font-bold hover:text-white"
+                    >
+                      Atrás
+                    </button>
+                    <button
+                      type="button"
+                      disabled={submittingCall || !callNotes.trim()}
+                      onClick={() => handleSaveCall('CONTACTED')}
+                      className="px-4 py-2 text-xs font-extrabold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-600/30 transition-all hover:scale-105"
+                    >
+                      {submittingCall ? 'Guardando...' : 'Guardar Observación & Compromiso'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Historial previo de gestiones */}
+              {previousCalls.length > 0 && (
+                <div className="pt-3 border-t border-slate-800 space-y-2">
+                  <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center space-x-1.5">
+                    <History className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Historial de Gestiones Anteriores ({previousCalls.length})</span>
+                  </h4>
+                  <div className="max-h-36 overflow-y-auto space-y-2 pr-1">
+                    {previousCalls.map((c) => (
+                      <div key={c.id} className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 text-[11px] space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-slate-300">{c.operatorName}</span>
+                          <span className="text-[10px] text-slate-500 font-mono">{formatDate(c.createdAt)}</span>
+                        </div>
+                        <div className="text-slate-400">{c.notes}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

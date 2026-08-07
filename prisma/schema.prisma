@@ -8,15 +8,16 @@ generator client {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  username  String   @unique
-  firstName String
-  lastName  String
-  password  String
-  role      String   @default("ADMIN") // "SUPER_ADMIN" | "ADMIN" | "COBRANZA"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String           @id @default(uuid())
+  email           String           @unique
+  username        String           @unique
+  firstName       String
+  lastName        String
+  password        String
+  role            String           @default("ADMIN") // "SUPER_ADMIN" | "ADMIN" | "COBRANZA"
+  collectionCalls CollectionCall[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 model BcvRate {
@@ -89,18 +90,33 @@ model FeeConcept {
 }
 
 model StudentFee {
-  id          String    @id @default(uuid())
+  id          String           @id @default(uuid())
   studentId   String
-  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student     Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
   conceptName String
-  currency    String    @default("USD")
+  currency    String           @default("USD")
   amountUsd   Float
-  paidUsd     Float     @default(0)
+  paidUsd     Float            @default(0)
   dueDate     DateTime
-  status      String    @default("PENDING")
+  status      String           @default("PENDING")
   payments    Payment[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  calls       CollectionCall[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model CollectionCall {
+  id           String     @id @default(uuid())
+  studentFeeId String
+  studentFee   StudentFee @relation(fields: [studentFeeId], references: [id], onDelete: Cascade)
+  userId       String?
+  user         User?      @relation(fields: [userId], references: [id])
+  operatorName String     @default("Personal de Cobranza")
+  status       String     // "CONTACTED" | "NO_ANSWER"
+  notes        String?    // Ej: "Mañana realiza el pago por Pago Móvil"
+  result       String     @default("PENDING") // "PENDING" | "CONVERTED_PAID"
+  paidAt       DateTime?
+  createdAt    DateTime   @default(now())
 }
 
 model Payment {
