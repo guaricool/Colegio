@@ -1,6 +1,6 @@
 # Memoria del Proyecto - Colegio Ramón Pierluissi Ramírez
 
-Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación Obligatoria & AdminAuthGuard (SuperAdmin, Admin, Cobranza), Dockerfile Optimizado, Exportador para Profit Plus 2K12, CRM de Registro de Llamadas de Cobranza, Dashboard de Auditoría de Desempeño con Filtros Avanzados, Auditoría de Ciberseguridad & Sanitización de Inputs, Encabezados HTTP Defensivos, Protección de PII de Estudiantes/Representantes, y Cotización Formal YoguiTech LLC.
+Sistema Financiero, Cobranza de Mensualidades, Escala de Pronto Pago (€256) vs Pago Regular (€270) vs Pago Tardío (€280), Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación Obligatoria & AdminAuthGuard (SuperAdmin, Admin, Cobranza), Dockerfile Optimizado, Exportador para Profit Plus 2K12, CRM de Registro de Llamadas de Cobranza, Dashboard de Auditoría de Desempeño con Filtros Avanzados, Auditoría de Ciberseguridad & Sanitización de Inputs, Encabezados HTTP Defensivos, Protección de PII de Estudiantes/Representantes, y Cotización Formal YoguiTech LLC.
 
 ## 📌 Reglas de Flujo de Trabajo (Obligatorias)
 
@@ -23,6 +23,11 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
 
 ## 🚀 Módulos Implementados
 
+- **Escala Configurable de Pronto Pago, Tarifa Regular y Pago Tardío (`src/lib/feeCalculator.ts`, `SchoolConfig`)**:
+  - **Monto Base Regular**: Configurable por el SuperAdmin en `/configuracion` (ej: **€270**).
+  - **Beneficio Pronto Pago**: Pago realizado dentro de los primeros 10 días del mes aplica tarifa reducida (ej: **€256**).
+  - **Recargo por Pago Tardío**: Pago realizado con mes vencido aplica recargo (ej: **€280**).
+  - **Cálculo Dinámico de Solvencia**: Al registrar pagos en `/api/payments`, el sistema evalúa la fecha del pago y valida la solvencia (`PAID` / Solvente) contra el monto dinámico según la escala activa, evitando falsas moras.
 - **Encabezados HTTP Defensivos & Protección de PII (`next.config.ts`, `/api/students`, `/api/representatives`)**:
   - Encabezados de seguridad globales: `Strict-Transport-Security` (HSTS de 2 años), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy` y `Permissions-Policy`.
   - Sanitización estricta contra XSS/inyecciones en datos de estudiantes (nombres, cédulas, becas) y representantes (teléfonos, direcciones, correos).
