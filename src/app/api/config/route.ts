@@ -18,6 +18,10 @@ export async function GET() {
           pagoMovilRif: 'J-31489201-4',
           zelleEmail: 'pagos@colegioramonpierluissi.com',
           zelleName: 'Colegio Ramón Pierluissi C.A.',
+          standardMonthlyFeeEur: 270.0,
+          earlyPaymentDayCutoff: 10,
+          earlyPaymentFeeEur: 256.0,
+          latePaymentFeeEur: 280.0,
         },
       });
     }
@@ -46,6 +50,10 @@ export async function POST(request: Request) {
         totalPagoApiKey: body.totalPagoApiKey,
         totalPagoMerchantId: body.totalPagoMerchantId,
         provincialC2PKey: body.provincialC2PKey,
+        standardMonthlyFeeEur: parseFloat(body.standardMonthlyFeeEur ?? 270),
+        earlyPaymentDayCutoff: parseInt(body.earlyPaymentDayCutoff ?? 10),
+        earlyPaymentFeeEur: parseFloat(body.earlyPaymentFeeEur ?? 256),
+        latePaymentFeeEur: parseFloat(body.latePaymentFeeEur ?? 280),
       },
       create: {
         id: 'default',
@@ -62,6 +70,10 @@ export async function POST(request: Request) {
         totalPagoApiKey: body.totalPagoApiKey,
         totalPagoMerchantId: body.totalPagoMerchantId,
         provincialC2PKey: body.provincialC2PKey,
+        standardMonthlyFeeEur: parseFloat(body.standardMonthlyFeeEur ?? 270),
+        earlyPaymentDayCutoff: parseInt(body.earlyPaymentDayCutoff ?? 10),
+        earlyPaymentFeeEur: parseFloat(body.earlyPaymentFeeEur ?? 256),
+        latePaymentFeeEur: parseFloat(body.latePaymentFeeEur ?? 280),
       },
     });
     return NextResponse.json(config);

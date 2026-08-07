@@ -29,20 +29,24 @@ model BcvRate {
 }
 
 model SchoolConfig {
-  id                  String  @id @default("default")
-  name                String  @default("Colegio Ramón Pierluissi")
-  rif                 String  @default("J-31489201-4")
-  phone               String  @default("+58 414-7890123")
-  email               String  @default("admonpierluissi@gmail.com")
-  address             String  @default("Prebo II, Valencia, Carabobo")
-  pagoMovilBank       String  @default("Banesco (0134)")
-  pagoMovilPhone      String  @default("0414-7890123")
-  pagoMovilRif        String  @default("J-31489201-4")
-  zelleEmail          String  @default("pagos@colegioramonpierluissi.com")
-  zelleName           String  @default("Colegio Ramón Pierluissi C.A.")
-  totalPagoApiKey     String?
-  totalPagoMerchantId String?
-  provincialC2PKey    String?
+  id                    String  @id @default("default")
+  name                  String  @default("Colegio Ramón Pierluissi")
+  rif                   String  @default("J-31489201-4")
+  phone                 String  @default("+58 414-7890123")
+  email                 String  @default("admonpierluissi@gmail.com")
+  address               String  @default("Prebo II, Valencia, Carabobo")
+  pagoMovilBank         String  @default("Banesco (0134)")
+  pagoMovilPhone        String  @default("0414-7890123")
+  pagoMovilRif          String  @default("J-31489201-4")
+  zelleEmail            String  @default("pagos@colegioramonpierluissi.com")
+  zelleName             String  @default("Colegio Ramón Pierluissi C.A.")
+  totalPagoApiKey       String?
+  totalPagoMerchantId   String?
+  provincialC2PKey      String?
+  standardMonthlyFeeEur Float   @default(270.0)
+  earlyPaymentDayCutoff Int     @default(10)
+  earlyPaymentFeeEur    Float   @default(256.0)
+  latePaymentFeeEur     Float   @default(280.0)
 }
 
 model Representative {

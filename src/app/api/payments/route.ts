@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getEffectiveFeeAmount } from '@/lib/feeCalculator';
 
 export async function GET() {
   try {
@@ -46,11 +47,26 @@ export async function POST(request: Request) {
 
     const fee = await prisma.studentFee.findUnique({
       where: { id: studentFeeId },
+      include: {
+        student: {
+          include: { grade: true },
+        },
+      },
     });
 
     if (!fee) {
       return NextResponse.json({ error: 'Concepto de mensualidad no encontrado' }, { status: 404 });
     }
+
+    const schoolConfig = await prisma.schoolConfig.findFirst({ where: { id: 'default' } });
+
+    const currentDate = new Date();
+    const feeCalculation = getEffectiveFeeAmount(
+      fee.amountUsd,
+      fee.dueDate,
+      currentDate,
+      schoolConfig || undefined
+    );
 
     const payVes = payUsd * rate;
 
@@ -62,13 +78,13 @@ export async function POST(request: Request) {
     const payment = await prisma.payment.create({
       data: {
         studentFeeId,
-        paymentDate: new Date(),
+        paymentDate: currentDate,
         method,
         reference: reference ? String(reference).trim() : null,
         amountUsd: payUsd,
         amountVes: payVes,
         bcvRate: rate,
-        notes: notes ? String(notes).trim() : null,
+        notes: notes ? String(notes).trim() : `${feeCalculation.label}. ${notes || ''}`.trim(),
         receiptNumber,
       },
       include: {
@@ -85,10 +101,13 @@ export async function POST(request: Request) {
       },
     });
 
-    // Actualizar estado de la mensualidad
+    // Actualizar estado de la mensualidad tomando en cuenta Pronto Pago / Regular / Pago Tardío
     const newPaidUsd = fee.paidUsd + payUsd;
     let newStatus = 'PARTIAL';
-    if (newPaidUsd >= fee.amountUsd - 0.01) {
+
+    // Si pagó igual o más que la tarifa de pronto pago o la tarifa regular o la tarifa base
+    const targetAmount = Math.min(fee.amountUsd, feeCalculation.expectedAmountEur);
+    if (newPaidUsd >= targetAmount - 0.01) {
       newStatus = 'PAID';
     }
 
@@ -105,7 +124,7 @@ export async function POST(request: Request) {
       where: { studentFeeId, result: 'PENDING' },
       data: {
         result: 'CONVERTED_PAID',
-        paidAt: new Date(),
+        paidAt: currentDate,
       },
     });
 

@@ -14,7 +14,10 @@ import {
   Lock, 
   AlertTriangle,
   Sparkles,
-  CheckCircle2
+  CheckCircle2,
+  Euro,
+  Clock,
+  CalendarDays
 } from 'lucide-react';
 
 export default function ConfiguracionPage() {
@@ -33,6 +36,10 @@ export default function ConfiguracionPage() {
     pagoMovilRif: '',
     zelleEmail: '',
     zelleName: '',
+    standardMonthlyFeeEur: 270,
+    earlyPaymentDayCutoff: 10,
+    earlyPaymentFeeEur: 256,
+    latePaymentFeeEur: 280,
   });
 
   const [bcvRate, setBcvRate] = useState('');
@@ -198,7 +205,7 @@ export default function ConfiguracionPage() {
           <span>Configuración General & Gestión de Personal</span>
         </h1>
         <p className="text-xs text-slate-400 mt-1">
-          Ajustes institucionales, cuentas bancarias, tasas BCV y creación de usuarios para el Área de Cobranza y Administración
+          Ajustes institucionales, cuotas de mensualidad, escala de pronto pago, tasas BCV y control de usuarios
         </p>
       </div>
 
@@ -363,6 +370,90 @@ export default function ConfiguracionPage() {
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
+        {/* SECCIÓN NUEVA: Escala de Tarifas de Mensualidad & Pronto Pago / Pago Tardío */}
+        <div className="bg-slate-900 border border-emerald-500/30 rounded-3xl p-6 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 className="text-base font-extrabold text-slate-100 flex items-center space-x-2">
+              <Euro className="w-5 h-5 text-emerald-400" />
+              <span>Configuración de Mensualidades (Pronto Pago vs. Pago Regular vs. Pago Tardío)</span>
+            </h2>
+            <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-extrabold px-3 py-1 rounded-full">
+              SuperAdmin Control
+            </span>
+          </div>
+
+          <p className="text-xs text-slate-300">
+            Define el valor estándar mensual, el beneficio de descuento por pronto pago (primeros días del mes) y el recargo por pago vencido. El sistema reconocerá automáticamente la solvencia del alumno según la fecha del pago.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800">
+              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center space-x-1">
+                <Euro className="w-3.5 h-3.5 text-blue-400" />
+                <span>Monto Regular (€)</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                required
+                value={config.standardMonthlyFeeEur ?? 270}
+                onChange={(e) => setConfig({ ...config, standardMonthlyFeeEur: e.target.value })}
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white font-black text-center focus:outline-none focus:border-blue-500"
+              />
+              <span className="text-[10px] text-slate-400 block mt-1">Precio regular mensual</span>
+            </div>
+
+            <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-emerald-500/30">
+              <label className="block text-xs font-semibold text-emerald-400 mb-1 flex items-center space-x-1">
+                <CalendarDays className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Día Límite Pronto Pago</span>
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="31"
+                required
+                value={config.earlyPaymentDayCutoff ?? 10}
+                onChange={(e) => setConfig({ ...config, earlyPaymentDayCutoff: e.target.value })}
+                className="w-full bg-slate-900 border border-emerald-500/40 rounded-xl px-3.5 py-2 text-xs text-emerald-300 font-black text-center focus:outline-none focus:border-emerald-400"
+              />
+              <span className="text-[10px] text-emerald-400/80 block mt-1">Ej: Primeros 10 días</span>
+            </div>
+
+            <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-emerald-500/30">
+              <label className="block text-xs font-semibold text-emerald-400 mb-1 flex items-center space-x-1">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Monto Pronto Pago (€)</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                required
+                value={config.earlyPaymentFeeEur ?? 256}
+                onChange={(e) => setConfig({ ...config, earlyPaymentFeeEur: e.target.value })}
+                className="w-full bg-slate-900 border border-emerald-500/40 rounded-xl px-3.5 py-2 text-xs text-emerald-300 font-black text-center focus:outline-none focus:border-emerald-400"
+              />
+              <span className="text-[10px] text-emerald-400/80 block mt-1">Pago temprano solvente (€256)</span>
+            </div>
+
+            <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-rose-500/30">
+              <label className="block text-xs font-semibold text-rose-400 mb-1 flex items-center space-x-1">
+                <Clock className="w-3.5 h-3.5 text-rose-400" />
+                <span>Monto Pago Tardío (€)</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                required
+                value={config.latePaymentFeeEur ?? 280}
+                onChange={(e) => setConfig({ ...config, latePaymentFeeEur: e.target.value })}
+                className="w-full bg-slate-900 border border-rose-500/40 rounded-xl px-3.5 py-2 text-xs text-rose-300 font-black text-center focus:outline-none focus:border-rose-400"
+              />
+              <span className="text-[10px] text-rose-400/80 block mt-1">Mes vencido con recargo (€280)</span>
+            </div>
+          </div>
+        </div>
+
         {/* Tasas BCV Duales */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
           <h2 className="text-base font-bold text-slate-100 flex items-center space-x-2">
