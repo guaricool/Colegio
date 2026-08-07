@@ -265,7 +265,8 @@ export default function ConfiguracionPage() {
                 className="w-full bg-slate-950 border border-indigo-500/40 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-extrabold"
               >
                 <option value="COBRANZA">🏢 Área de Cobranza (Solo caja, cobros y recibos)</option>
-                <option value="ADMIN">👑 Administrador General del Colegio</option>
+                <option value="ADMIN">👑 Administrador General / Dueño del Colegio</option>
+                <option value="SUPER_ADMIN">⚡ SuperAdmin (Acceso total al 100% del sistema)</option>
               </select>
             </div>
           </div>

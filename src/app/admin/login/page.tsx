@@ -112,13 +112,10 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-xs">
-          <Link href="/admin/register" className="text-emerald-400 hover:text-emerald-300 font-extrabold flex items-center space-x-1">
-            <UserPlus className="w-3.5 h-3.5" />
-            <span>Registrar Nuevo Usuario</span>
-          </Link>
-          <Link href="/" className="text-slate-500 hover:text-slate-300 font-semibold">
-            Ir al Inicio
+        <div className="pt-4 border-t border-slate-800 flex items-center justify-center text-xs">
+          <Link href="/" className="text-slate-400 hover:text-slate-200 font-semibold flex items-center space-x-1">
+            <Building2 className="w-3.5 h-3.5" />
+            <span>Volver a la Página Principal del Colegio</span>
           </Link>
         </div>
       </div>

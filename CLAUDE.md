@@ -1,6 +1,6 @@
 # Memoria del Proyecto - Colegio Ramón Pierluissi Ramírez
 
-Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación Obligatoria & AdminAuthGuard (SuperAdmin, Admin, Cobranza), Dockerfile Optimizado, Exportador para Profit Plus 2K12, CRM de Registro de Llamadas de Cobranza y Dashboard de Auditoría de Desempeño de Personal.
+Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Recordatorios por WhatsApp, Escáner Inteligente Gemini AI, Portal de Representantes (Pago Sin Tarjeta & C2P Provincial), Landing Page Institucional, Verificación TotalPago/Provincial, Autenticación Obligatoria & AdminAuthGuard (SuperAdmin, Admin, Cobranza), Dockerfile Optimizado, Exportador para Profit Plus 2K12, CRM de Registro de Llamadas de Cobranza, Dashboard de Auditoría de Desempeño y Registro Privado Exclusivo para SuperAdmin.
 
 ## 📌 Reglas de Flujo de Trabajo (Obligatorias)
 
@@ -23,18 +23,19 @@ Sistema Financiero, Cobranza de Mensualidades, Recibos Digitalizados en PDF, Rec
 
 ## 🚀 Módulos Implementados
 
+- **Restricción de Registro Público & Creación Privada de Usuarios**:
+  - Eliminado el enlace de registro público externo en la vista de login `/admin/login`.
+  - La pantalla `/admin/register` ahora está **protegida con `AdminAuthGuard`** para que solo SuperAdmin y Administradores autenticados puedan acceder.
+  - Creación de usuarios con roles **`SUPER_ADMIN`** (SuperAdmin 100%), **`ADMIN`** (Dueño / Administrador General) y **`COBRANZA`** (Caja / Cobros) disponible de forma exclusiva en `/configuracion` y `/admin/register`.
 - **CRM de Registro de Gestiones de Cobranza (`CollectionCall`)**:
   - Modal interactivo de llamada en `/cobros` al hacer clic en un estudiante adeudado.
-  - Muestra la ficha de contacto del representante (Teléfono, Cédula, Nombre, Saldo).
-  - **Botón "Intento Fallido"**: Registra que el operador intentó llamar pero no contestó.
-  - **Botón "Comunicado Con Éxito"**: Abre un área de texto para ingresar las observaciones/compromisos de pago (Ej. *"Mañana paga en efectivo"*).
-  - Trazabilidad y cruce de datos automático: Al registrarse el pago, las gestiones previas pasan automáticamente a `PAGADO / CONVERTED_PAID`.
+  - Botón "Intento Fallido" y Botón "Comunicado Con Éxito" con área de observaciones.
+  - Cruce de datos automático a `PAGADO / CONVERTED_PAID`.
 - **Dashboard de Auditoría y Desempeño de Cobranza (`/reportes`)**:
   - Pestaña **"📊 Auditoría de Cobranza"** con KPIs de efectividad (%), gestiones totales, contactados, intentos fallidos y monto recuperado ($).
   - Tabla de productividad por operador/cajero.
-  - Línea de tiempo auditante de llamadas cruzada con el comprobante de pago final.
-- **Privacidad y Eliminación de Marcas de Agua Personales**: Limpieza total de datos personales en los placeholders/marcas de agua de los formularios de Login, Registro y Configuración de usuarios.
-- **Dockerfile & Nixpacks.toml Optimizado**: Solución al fallo `ECONNRESET` de Nixpacks en Coolify. Compilación ligera usando `npm install --legacy-peer-deps` y `npx prisma generate`.
+- **Privacidad y Eliminación de Marcas de Agua Personales**: Limpieza total de datos personales en los placeholders de login, registro y configuración.
+- **Dockerfile & Nixpacks.toml Optimizado**: Solución al fallo `ECONNRESET` de Nixpacks en Coolify.
 - **Bloqueo Total Administrativo & AdminAuthGuard (`AdminAuthGuard.tsx`)**: Protección global de las 6 páginas administrativas (`/dashboard`, `/cobros`, `/estudiantes`, `/whatsapp`, `/reportes`, `/configuracion`).
 - **Autenticación Administrativa & Control de Roles (RBAC)**: SuperAdmin (`cpierluissis@gmail.com`), Administrador General y Área de Cobranza.
 - **Exportador Contable Profit Plus 2K12 & Lotes Fin de Semana (`/reportes`)**: Agrupación de cobros del fin de semana (sábado/domingo) para exportación en Excel/CSV (`saCliente` y `saCobro`).
