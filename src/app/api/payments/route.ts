@@ -29,6 +29,21 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { studentFeeId, method, reference, amountUsd, bcvRate, notes } = body;
 
+    if (!studentFeeId || !method || !amountUsd || !bcvRate) {
+      return NextResponse.json({ error: 'Faltan campos obligatorios para registrar el pago' }, { status: 400 });
+    }
+
+    const payUsd = parseFloat(amountUsd);
+    const rate = parseFloat(bcvRate);
+
+    if (isNaN(payUsd) || payUsd <= 0) {
+      return NextResponse.json({ error: 'El monto ingresado debe ser mayor a cero' }, { status: 400 });
+    }
+
+    if (isNaN(rate) || rate <= 0) {
+      return NextResponse.json({ error: 'La tasa BCV debe ser mayor a cero' }, { status: 400 });
+    }
+
     const fee = await prisma.studentFee.findUnique({
       where: { id: studentFeeId },
     });
@@ -37,24 +52,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Concepto de mensualidad no encontrado' }, { status: 404 });
     }
 
-    const payUsd = parseFloat(amountUsd);
-    const rate = parseFloat(bcvRate);
     const payVes = payUsd * rate;
 
-    // Generar correlativo de recibo de pago
+    // Generar correlativo de recibo de pago con timestamp para evitar colisiones en transacciones concurrentes
     const countPayments = await prisma.payment.count();
-    const receiptNumber = `REC-${new Date().getFullYear()}-${String(countPayments + 1).padStart(4, '0')}`;
+    const uniqueStamp = Math.floor(100 + Math.random() * 900);
+    const receiptNumber = `REC-${new Date().getFullYear()}-${String(countPayments + 1).padStart(4, '0')}-${uniqueStamp}`;
 
     const payment = await prisma.payment.create({
       data: {
         studentFeeId,
         paymentDate: new Date(),
         method,
-        reference: reference || null,
+        reference: reference ? String(reference).trim() : null,
         amountUsd: payUsd,
         amountVes: payVes,
         bcvRate: rate,
-        notes: notes || null,
+        notes: notes ? String(notes).trim() : null,
         receiptNumber,
       },
       include: {
@@ -96,8 +110,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(payment);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error al registrar pago:', error);
-    return NextResponse.json({ error: 'Error al registrar el pago' }, { status: 500 });
+    return NextResponse.json({ error: 'Error interno al registrar el pago' }, { status: 500 });
   }
 }

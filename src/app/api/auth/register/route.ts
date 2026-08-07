@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Sanitización de texto para prevenir XSS/Inyección
+function sanitize(input: string): string {
+  return input ? input.replace(/<[^>]*>?/gm, '').trim() : '';
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -13,8 +22,18 @@ export async function POST(request: Request) {
       );
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanUsername = username.trim().toLowerCase();
+    const cleanEmail = sanitize(email).toLowerCase();
+    const cleanUsername = sanitize(username).toLowerCase();
+    const cleanFirstName = sanitize(firstName);
+    const cleanLastName = sanitize(lastName);
+
+    if (!isValidEmail(cleanEmail)) {
+      return NextResponse.json({ error: 'El correo electrónico no tiene un formato válido' }, { status: 400 });
+    }
+
+    if (password.length < 6) {
+      return NextResponse.json({ error: 'La contraseña debe tener al menos 6 caracteres' }, { status: 400 });
+    }
 
     // Verificar si el correo o usuario ya existe
     const existing = await prisma.user.findFirst({
@@ -40,8 +59,8 @@ export async function POST(request: Request) {
       data: {
         email: cleanEmail,
         username: cleanUsername,
-        firstName,
-        lastName,
+        firstName: cleanFirstName,
+        lastName: cleanLastName,
         password,
         role: assignedRole,
       },
